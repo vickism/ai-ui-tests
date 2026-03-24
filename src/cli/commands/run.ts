@@ -6,7 +6,7 @@ import { discoverTestFiles, parseTestFiles } from '../../parser/index.js';
 import { createModel } from '../../ai/provider.js';
 import { createReporter } from '../../reporter/index.js';
 import { runSuites } from '../../runner/suite-runner.js';
-import { logger } from '../../utils/logger.js';
+import { logger, setLogLevel } from '../../utils/logger.js';
 
 export const runCommand = new Command('run')
   .description('Run tests from a file or directory')
@@ -19,6 +19,10 @@ export const runCommand = new Command('run')
   .option('--model <id>', 'override AI model (e.g., openai:gpt-4o)')
   .option('--verbose', 'show AI reasoning and debug output')
   .action(async (testPath: string, options: Record<string, unknown>) => {
+    if (options.verbose) {
+      setLogLevel('debug');
+    }
+
     console.log();
     console.log(`  ${pc.bold('Synth')} ${pc.gray('v0.1.0')}`);
 
