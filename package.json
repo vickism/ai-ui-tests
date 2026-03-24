@@ -24,7 +24,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "ai": "^4.0.0",
+    "ai": "^6.0.138",
     "@ai-sdk/anthropic": "^1.0.0",
     "@ai-sdk/openai": "^1.0.0",
     "commander": "^13.0.0",
