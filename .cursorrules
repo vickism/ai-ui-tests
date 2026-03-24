@@ -1,0 +1,46 @@
+# Synth — AI-Driven UI Testing Tool
+
+## Project Overview
+
+Synth is a CLI tool where UI tests are written in plain English (markdown) and an AI agent drives a real browser via Playwright to verify them.
+
+## Tech Stack
+
+- TypeScript (ESM, ES2022, NodeNext modules)
+- Playwright (browser automation)
+- Vercel AI SDK (`ai` package) for multi-provider LLM support
+- Commander.js (CLI), Zod (validation), tsup (build), Vitest (tests)
+
+## Architecture
+
+```
+Tests (.test.md) → Parser → Agent Loop:
+  Capture page state (screenshot + ARIA tree)
+  → Send to AI (generateText + tool_use)
+  → AI returns action (click, type, navigate, assert, done)
+  → Execute via Playwright
+  → Repeat until done(pass/fail)
+```
+
+## Key Patterns
+
+- Tools defined with `tool()` from Vercel AI SDK using Zod schemas (`src/ai/tools.ts`)
+- Agent loop uses `generateText()` with `maxSteps` for multi-step tool calling (`src/agent/loop.ts`)
+- Multi-strategy selector resolution: CSS → text → role → label → placeholder → testId (`src/browser/actions.ts`)
+- The `done` tool has no execute function — checked in the agent loop's step results
+- Fresh browser page per test for isolation
+- Config validated with Zod, loaded from `synth.config.ts` with CLI overrides
+
+## File Conventions
+
+- Source code in `src/`, tests in `tests/unit/` and `tests/integration/`
+- Test files use `.test.ts` extension
+- Imports use `.js` extension (NodeNext module resolution)
+- Templates for `synth init` are in `templates/`
+
+## Commands
+
+- `npm run dev -- run tests/` — run in dev mode
+- `npm run build` — build with tsup
+- `npm test` — vitest
+- `npm run lint` — tsc --noEmit
