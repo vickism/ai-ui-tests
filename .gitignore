@@ -1,0 +1,7 @@
+node_modules/
+dist/
+synth-screenshots/
+synth-reports/
+*.tsbuildinfo
+.env
+.env.*

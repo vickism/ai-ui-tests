@@ -1,0 +1,45 @@
+{
+  "name": "synth-test",
+  "version": "0.1.0",
+  "description": "AI-driven UI testing tool. Write tests in plain English, let AI drive the browser.",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "bin": {
+    "synth": "./dist/index.cjs"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/index.ts",
+    "test": "vitest",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "testing",
+    "ui-testing",
+    "ai",
+    "playwright",
+    "browser-automation",
+    "natural-language",
+    "e2e"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "ai": "^4.0.0",
+    "@ai-sdk/anthropic": "^1.0.0",
+    "@ai-sdk/openai": "^1.0.0",
+    "commander": "^13.0.0",
+    "picocolors": "^1.1.0",
+    "playwright": "^1.50.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
