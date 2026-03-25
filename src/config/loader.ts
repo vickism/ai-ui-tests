@@ -1,86 +1,87 @@
-import { pathToFileURL } from 'node:url';
-import path from 'node:path';
-import fs from 'node:fs';
-import { configSchema, type SynthConfig } from './schema.js';
-import { defaultConfig } from './defaults.js';
-import { ConfigError } from '../utils/errors.js';
-import { logger } from '../utils/logger.js';
+/**
+ * Config loader — finds and parses the user's ai-ui-tests.config.ts file.
+ *
+ * Resolution order (first match wins):
+ *   ai-ui-tests.config.ts → ai-ui-tests.config.js → ai-ui-tests.config.mjs
+ *
+ * Merge priority: defaults < config file < CLI overrides < env variables
+ * Validation: Zod schema with detailed error messages on invalid config.
+ */
 
-const CONFIG_FILENAMES = [
-  'synth.config.ts',
-  'synth.config.js',
-  'synth.config.mjs',
-];
+import { pathToFileURL } from 'node:url'
+import path from 'node:path'
+import fs from 'node:fs'
+import { configSchema, type AiUiTestsConfig } from './schema.js'
+import { defaultConfig } from './defaults.js'
+import { ConfigError } from '../utils/errors.js'
+import { logger } from '../utils/logger.js'
+
+const CONFIG_FILENAMES = ['ai-ui-tests.config.ts', 'ai-ui-tests.config.js', 'ai-ui-tests.config.mjs']
 
 export interface CLIOverrides {
-  baseUrl?: string;
-  headed?: boolean;
-  timeout?: number;
-  screenshotDir?: string;
-  model?: string;
+  baseUrl?: string
+  headed?: boolean
+  timeout?: number
+  screenshotDir?: string
+  model?: string
+  noMemory?: boolean
 }
 
-export async function loadConfig(
-  cwd: string = process.cwd(),
-  overrides: CLIOverrides = {}
-): Promise<SynthConfig> {
-  let fileConfig: Record<string, unknown> = {};
+export async function loadConfig(cwd: string = process.cwd(), overrides: CLIOverrides = {}): Promise<AiUiTestsConfig> {
+  let fileConfig: Record<string, unknown> = {}
 
   for (const filename of CONFIG_FILENAMES) {
-    const configPath = path.resolve(cwd, filename);
+    const configPath = path.resolve(cwd, filename)
     if (fs.existsSync(configPath)) {
-      logger.debug(`Loading config from ${configPath}`);
+      logger.debug(`Loading config from ${configPath}`)
       try {
-        const url = pathToFileURL(configPath).href;
-        const mod = await import(url);
-        fileConfig = mod.default ?? mod;
+        const url = pathToFileURL(configPath).href
+        const mod = await import(url)
+        fileConfig = mod.default ?? mod
       } catch (err) {
-        throw new ConfigError(
-          `Failed to load config from ${filename}: ${err instanceof Error ? err.message : String(err)}`
-        );
+        throw new ConfigError(`Failed to load config from ${filename}: ${err instanceof Error ? err.message : String(err)}`)
       }
-      break;
+      break
     }
   }
 
-  const merged = deepMerge(defaultConfig, fileConfig);
+  const merged = deepMerge(defaultConfig, fileConfig)
 
   if (overrides.baseUrl) {
-    merged.baseUrl = overrides.baseUrl;
+    merged.baseUrl = overrides.baseUrl
   }
   if (overrides.headed !== undefined) {
-    merged.browser = merged.browser ?? {};
-    (merged.browser as Record<string, unknown>).headless = !overrides.headed;
+    merged.browser = merged.browser ?? {}
+    ;(merged.browser as Record<string, unknown>).headless = !overrides.headed
   }
   if (overrides.timeout !== undefined) {
-    merged.browser = merged.browser ?? {};
-    (merged.browser as Record<string, unknown>).timeout = overrides.timeout;
+    merged.browser = merged.browser ?? {}
+    ;(merged.browser as Record<string, unknown>).timeout = overrides.timeout
   }
   if (overrides.screenshotDir) {
-    merged.screenshots = merged.screenshots ?? {};
-    (merged.screenshots as Record<string, unknown>).dir = overrides.screenshotDir;
+    merged.screenshots = merged.screenshots ?? {}
+    ;(merged.screenshots as Record<string, unknown>).dir = overrides.screenshotDir
   }
   if (overrides.model) {
-    merged.ai = merged.ai ?? {};
-    (merged.ai as Record<string, unknown>).model = overrides.model;
+    merged.ai = merged.ai ?? {}
+    ;(merged.ai as Record<string, unknown>).model = overrides.model
+  }
+  if (overrides.noMemory) {
+    merged.memory = merged.memory ?? {}
+    ;(merged.memory as Record<string, unknown>).enabled = false
   }
 
-  const result = configSchema.safeParse(merged);
+  const result = configSchema.safeParse(merged)
   if (!result.success) {
-    const issues = result.error.issues
-      .map((i) => `  - ${i.path.join('.')}: ${i.message}`)
-      .join('\n');
-    throw new ConfigError(`Invalid configuration:\n${issues}`);
+    const issues = result.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n')
+    throw new ConfigError(`Invalid configuration:\n${issues}`)
   }
 
-  return result.data;
+  return result.data
 }
 
-function deepMerge(
-  target: Record<string, unknown>,
-  source: Record<string, unknown>
-): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...target };
+function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...target }
   for (const key of Object.keys(source)) {
     if (
       source[key] &&
@@ -90,13 +91,10 @@ function deepMerge(
       typeof target[key] === 'object' &&
       !Array.isArray(target[key])
     ) {
-      result[key] = deepMerge(
-        target[key] as Record<string, unknown>,
-        source[key] as Record<string, unknown>
-      );
+      result[key] = deepMerge(target[key] as Record<string, unknown>, source[key] as Record<string, unknown>)
     } else {
-      result[key] = source[key];
+      result[key] = source[key]
     }
   }
-  return result;
+  return result
 }

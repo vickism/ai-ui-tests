@@ -1,0 +1,7 @@
+node_modules
+*.yml
+dist
+coverage
+temp
+.idea
+**/generated

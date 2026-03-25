@@ -13,8 +13,8 @@ export default {
   },
 
   screenshots: {
-    dir: './synth-screenshots',
+    dir: './ai-ui-tests-screenshots',
     onFailure: true,
     onSuccess: false,
   },
-};
+}

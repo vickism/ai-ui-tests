@@ -1,7 +1,14 @@
 node_modules/
 dist/
+ai-ui-tests-screenshots/
+ai-ui-tests-reports/
+ai-ui-tests-auth.json
+ai-ui-tests-memory/
+synth-auth.json
+synth-memory/
 synth-screenshots/
 synth-reports/
 *.tsbuildinfo
 .env
 .env.*
+.claude/settings.local.json

@@ -1,26 +1,26 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ConsoleReporter } from '../../../src/reporter/console-reporter.js';
-import type { TestResult, SuiteResult, RunResult } from '../../../src/reporter/types.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ConsoleReporter } from '../../../src/reporter/console-reporter.js'
+import type { RunResult, TestResult } from '../../../src/reporter/types.js'
 
 describe('ConsoleReporter', () => {
-  let reporter: ConsoleReporter;
-  let consoleSpy: ReturnType<typeof vi.spyOn>;
+  let reporter: ConsoleReporter
+  let consoleSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
-    reporter = new ConsoleReporter();
-    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-  });
+    reporter = new ConsoleReporter()
+    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+  })
 
   afterEach(() => {
-    vi.restoreAllMocks();
-  });
+    vi.restoreAllMocks()
+  })
 
   it('prints suite name on suite start', () => {
-    reporter.onSuiteStart('Auth Tests', 'tests/auth.test.md');
-    expect(consoleSpy).toHaveBeenCalled();
-    const output = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n');
-    expect(output).toContain('Auth Tests');
-  });
+    reporter.onSuiteStart('Auth Tests', 'tests/auth.test.md')
+    expect(consoleSpy).toHaveBeenCalled()
+    const output = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n')
+    expect(output).toContain('Auth Tests')
+  })
 
   it('prints PASS for passing tests', () => {
     const result: TestResult = {
@@ -30,12 +30,12 @@ describe('ConsoleReporter', () => {
       reason: 'Login successful',
       steps: 5,
       durationMs: 3000,
-    };
-    reporter.onTestFinish(result);
-    const output = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n');
-    expect(output).toContain('PASS');
-    expect(output).toContain('User can log in');
-  });
+    }
+    reporter.onTestFinish(result)
+    const output = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n')
+    expect(output).toContain('PASS')
+    expect(output).toContain('User can log in')
+  })
 
   it('prints FAIL and reason for failing tests', () => {
     const result: TestResult = {
@@ -45,12 +45,12 @@ describe('ConsoleReporter', () => {
       reason: 'Sign up button not found',
       steps: 3,
       durationMs: 5000,
-    };
-    reporter.onTestFinish(result);
-    const output = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n');
-    expect(output).toContain('FAIL');
-    expect(output).toContain('Sign up button not found');
-  });
+    }
+    reporter.onTestFinish(result)
+    const output = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n')
+    expect(output).toContain('FAIL')
+    expect(output).toContain('Sign up button not found')
+  })
 
   it('prints summary on run finish', () => {
     const result: RunResult = {
@@ -59,13 +59,13 @@ describe('ConsoleReporter', () => {
       totalFailed: 1,
       totalTests: 4,
       durationMs: 15000,
-    };
-    reporter.onRunFinish(result);
-    const output = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n');
-    expect(output).toContain('3 passed');
-    expect(output).toContain('1 failed');
-    expect(output).toContain('4 total');
-  });
+    }
+    reporter.onRunFinish(result)
+    const output = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n')
+    expect(output).toContain('3 passed')
+    expect(output).toContain('1 failed')
+    expect(output).toContain('4 total')
+  })
 
   it('formats duration in seconds', () => {
     const result: TestResult = {
@@ -75,11 +75,11 @@ describe('ConsoleReporter', () => {
       reason: '',
       steps: 1,
       durationMs: 12300,
-    };
-    reporter.onTestFinish(result);
-    const output = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n');
-    expect(output).toContain('12.3s');
-  });
+    }
+    reporter.onTestFinish(result)
+    const output = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n')
+    expect(output).toContain('12.3s')
+  })
 
   it('formats duration in ms for fast tests', () => {
     const result: TestResult = {
@@ -89,9 +89,9 @@ describe('ConsoleReporter', () => {
       reason: '',
       steps: 1,
       durationMs: 500,
-    };
-    reporter.onTestFinish(result);
-    const output = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n');
-    expect(output).toContain('500ms');
-  });
-});
+    }
+    reporter.onTestFinish(result)
+    const output = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n')
+    expect(output).toContain('500ms')
+  })
+})

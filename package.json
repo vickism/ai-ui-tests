@@ -1,18 +1,30 @@
 {
-  "name": "synth-test",
+  "name": "@vicksim/ai-ui-tests",
   "version": "0.1.0",
   "description": "AI-driven UI testing tool. Write tests in plain English, let AI drive the browser.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "synth": "./dist/index.js"
+    "ai-ui-tests": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsup",
+    "audit": "better-npm-audit audit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint \"**/*.ts\"",
+    "lint:fix": "eslint \"**/*.ts\" --fix",
+    "check-types": "tsc -p tsconfig.json --noEmit",
+    "build": "run-s build:*",
+    "build:0-clean": "rimraf dist coverage",
+    "build:1-lint": "eslint \"**/*.ts\" --max-warnings 0 && prettier --check \"**/*.ts\"",
+    "build:2-check-types": "tsc -p tsconfig.json --noEmit",
+    "build:3-build": "tsup",
+    "build:4-copy-templates": "copyfiles -u 0 \"templates/**/*\" dist",
     "dev": "tsx src/index.ts",
-    "audit": "npx better-npm-audit audit",
-    "test": "vitest",
-    "lint": "tsc --noEmit"
+    "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage",
+    "test:ci": "vitest run --coverage --reporter junit --outputFile test-results.xml",
+    "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [
     "testing",
@@ -23,24 +35,48 @@
     "natural-language",
     "e2e"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vickism/ai-ui-tests.git"
+  },
+  "homepage": "https://github.com/vickism/ai-ui-tests#readme",
   "license": "MIT",
+  "files": [
+    "dist"
+  ],
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.64",
-    "@ai-sdk/openai": "^3.0.48",
-    "ai": "^6.0.138",
+    "@ai-sdk/anthropic": "^3.0.71",
+    "@ai-sdk/azure": "^3.0.54",
+    "@ai-sdk/openai": "^3.0.53",
+    "@faker-js/faker": "^10.4.0",
+    "ai": "^6.0.168",
     "commander": "^14.0.3",
     "picocolors": "^1.1.1",
-    "playwright": "^1.58.2",
+    "playwright": "^1.59.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
+    "@eslint/js": "^9.39.4",
+    "@types/node": "^25.6.0",
+    "@vitest/coverage-v8": "^4.1.4",
+    "better-npm-audit": "^3.11.0",
+    "copyfiles": "^2.4.1",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^14.0.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.5.3",
+    "rimraf": "^6.1.0",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.1"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.0",
+    "vitest": "^4.1.4"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

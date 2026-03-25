@@ -1,12 +1,22 @@
-import { Command } from 'commander';
-import pc from 'picocolors';
-import { loadConfig } from '../../config/loader.js';
-import { loadAppContext } from '../../config/context.js';
-import { discoverTestFiles, parseTestFiles } from '../../parser/index.js';
-import { createModel } from '../../ai/provider.js';
-import { createReporter } from '../../reporter/index.js';
-import { runSuites } from '../../runner/suite-runner.js';
-import { logger, setLogLevel } from '../../utils/logger.js';
+/**
+ * The main `ai-ui-tests run` command — orchestrates the full test pipeline:
+ *   1. Load config (ai-ui-tests.config.ts + CLI overrides)
+ *   2. Load app context (ai-ui-tests.md + README.md)
+ *   3. Discover and parse test files (.test.md)
+ *   4. Create AI model from config
+ *   5. Run all test suites via the suite runner
+ *   6. Report results and exit with code 0 (all pass) or 1 (any fail)
+ */
+
+import { Command } from 'commander'
+import pc from 'picocolors'
+import { loadConfig } from '../../config/loader.js'
+import { loadAppContext } from '../../config/context.js'
+import { discoverTestFiles, parseTestFilesWithAI } from '../../parser/index.js'
+import { createModel } from '../../ai/provider.js'
+import { createReporter } from '../../reporter/index.js'
+import { runSuites } from '../../runner/suite-runner.js'
+import { logger, setLogLevel } from '../../utils/logger.js'
 
 export const runCommand = new Command('run')
   .description('Run tests from a file or directory')
@@ -15,16 +25,18 @@ export const runCommand = new Command('run')
   .option('--base-url <url>', 'override base URL')
   .option('--timeout <ms>', 'override timeout in milliseconds', parseInt)
   .option('--screenshot-dir <dir>', 'directory for screenshots')
-  .option('--grep <pattern>', 'filter tests by name pattern')
+  .option('--grep <pattern>', 'filter tests by suite or test name')
+  .option('--file <pattern>', 'filter by test filename (e.g., borrower matches borrower.test.md)')
   .option('--model <id>', 'override AI model (e.g., openai:gpt-4o)')
+  .option('--no-memory', 'disable selector memory for this run')
   .option('--verbose', 'show AI reasoning and debug output')
   .action(async (testPath: string, options: Record<string, unknown>) => {
     if (options.verbose) {
-      setLogLevel('debug');
+      setLogLevel('debug')
     }
 
-    console.log();
-    console.log(`  ${pc.bold('Synth')} ${pc.gray('v0.1.0')}`);
+    logger.blank()
+    logger.info(`${pc.bold('AI UI Tests')} ${pc.gray('v0.1.0')}`)
 
     try {
       // Load config
@@ -34,33 +46,34 @@ export const runCommand = new Command('run')
         timeout: options.timeout as number | undefined,
         screenshotDir: options.screenshotDir as string | undefined,
         model: options.model as string | undefined,
-      });
+        noMemory: options.noMemory as boolean | undefined,
+      })
 
       // Load app context
-      const appContext = loadAppContext(process.cwd());
+      const appContext = loadAppContext(process.cwd())
 
-      // Discover and parse test files
-      const testFiles = discoverTestFiles(testPath);
+      // Discover test files
+      const testFiles = discoverTestFiles(testPath)
       if (testFiles.length === 0) {
-        logger.error(`No test files found in ${testPath}`);
-        logger.info('Test files should end with .test.md');
-        logger.info('Run "synth init" to create an example test.');
-        process.exit(1);
+        logger.error(`No test files found in ${testPath}`)
+        logger.info('Test files should end with .test.md')
+        logger.info('Run "ai-ui-tests init" to create an example test.')
+        process.exit(1)
       }
 
-      const suites = parseTestFiles(testFiles);
-      const totalTests = suites.reduce((sum, s) => sum + s.tests.length, 0);
-      logger.info(
-        `Found ${totalTests} test${totalTests !== 1 ? 's' : ''} in ${testFiles.length} file${testFiles.length !== 1 ? 's' : ''}`
-      );
-      logger.info(`Base URL: ${config.baseUrl}`);
-      logger.info(`AI: ${config.ai.provider}/${config.ai.model}`);
-
       // Create AI model
-      const model = createModel(config);
+      const model = createModel(config)
+
+      const suites = await parseTestFilesWithAI(testFiles, model, appContext.content)
+      const totalTests = suites.reduce((sum, s) => sum + s.tests.length, 0)
+      logger.info(`Found ${totalTests} test${totalTests !== 1 ? 's' : ''} in ${testFiles.length} file${testFiles.length !== 1 ? 's' : ''}`)
+      logger.info(`Base URL: ${config.baseUrl}`)
+      logger.info(`AI: ${config.ai.provider}/${config.ai.model}`)
 
       // Create reporter
-      const reporter = createReporter(config.reporter);
+      const reporter = createReporter(config.reporter, {
+        verbose: options.verbose as boolean | undefined,
+      })
 
       // Run all suites
       const result = await runSuites({
@@ -70,14 +83,13 @@ export const runCommand = new Command('run')
         appContext: appContext.content,
         reporter,
         grep: options.grep as string | undefined,
-      });
+        file: options.file as string | undefined,
+      })
 
       // Exit with appropriate code
-      process.exit(result.totalFailed > 0 ? 1 : 0);
+      process.exit(result.totalFailed > 0 ? 1 : 0)
     } catch (err) {
-      logger.error(
-        err instanceof Error ? err.message : String(err)
-      );
-      process.exit(1);
+      logger.error(err instanceof Error ? err.message : String(err))
+      process.exit(1)
     }
-  });
+  })

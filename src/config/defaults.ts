@@ -1,6 +1,6 @@
-import type { SynthConfig } from './schema.js';
+import type { AiUiTestsConfig } from './schema.js'
 
-export const defaultConfig: SynthConfig = {
+export const defaultConfig: AiUiTestsConfig = {
   baseUrl: 'http://localhost:3000',
 
   ai: {
@@ -17,10 +17,15 @@ export const defaultConfig: SynthConfig = {
   },
 
   screenshots: {
-    dir: './synth-screenshots',
+    dir: './ai-ui-tests-screenshots',
     onFailure: true,
     onSuccess: false,
   },
 
+  memory: {
+    enabled: true,
+    dir: './ai-ui-tests-memory',
+  },
+
   reporter: 'console',
-};
+}

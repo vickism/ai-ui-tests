@@ -1,31 +1,40 @@
-# Synth
+# AI UI Tests
 
 AI-driven UI testing. Write tests in plain English, let AI drive the browser.
 
-```
-synth run tests/
+```bash
+npx @vicksim/ai-ui-tests run
 ```
 
-Synth reads your test descriptions, launches a real browser, and uses an AI agent to navigate your app like a real user — clicking buttons, filling forms, and verifying outcomes. No selectors, no code, just English.
+AI UI Tests reads your test descriptions, launches a real browser, and uses an AI agent to navigate your app like a real user — clicking buttons, filling forms, and verifying outcomes. No selectors, no code, just English.
+
+## Install
+
+```bash
+npm install @vicksim/ai-ui-tests --save-dev
+
+# Install browser binaries
+npx playwright install chromium
+```
 
 ## Quick Start
 
 ```bash
-# Install
-npm install
-
-# Install browser binaries
-npx playwright install
-
-# Initialize in your project
-npx tsx src/index.ts init
+# Scaffold config + example test
+npx ai-ui-tests init
 
 # Set your API key
 export ANTHROPIC_API_KEY=sk-ant-...
 
-# Run tests
-npx tsx src/index.ts run
+# Start your app, then run tests
+npx ai-ui-tests run
 ```
+
+That's it. AI UI Tests creates three files:
+
+- `ai-ui-tests.config.ts` — points to your app's URL
+- `ai-ui-tests.md` — describes your app so the AI understands it
+- `tests/example.test.md` — a sample test to get started
 
 ## Writing Tests
 
@@ -44,11 +53,11 @@ Tests are markdown files. Headings are suites, bullet points are tests:
 - The user can update their display name
 ```
 
-Save as `tests/auth.test.md` and run `synth run`.
+Save as `tests/auth.test.md` and run `npx ai-ui-tests run`. Each bullet is a standalone test that the AI will execute step by step.
 
 ## App Context
 
-Create a `synth.md` file in your project root to describe your app. This gives the AI the context it needs to understand your application:
+Create a `ai-ui-tests.md` file in your project root to describe your app. This is what makes plain English tests work — the AI reads it before every test:
 
 ```markdown
 # My App
@@ -68,70 +77,147 @@ A task management app where users create projects and manage tasks.
 - "Board" = a kanban-style task board
 ```
 
-The AI reads this before running tests, so it knows your URL structure, features, and terminology. The more context you provide, the better the tests work.
+The more context you provide (pages, features, terminology, edge cases), the better the tests work.
 
 ## Configuration
 
-Create `synth.config.ts` in your project root:
+Create `ai-ui-tests.config.ts` in your project root:
 
 ```typescript
 export default {
   baseUrl: 'http://localhost:3000',
 
   ai: {
-    provider: 'anthropic',       // anthropic | openai
+    provider: 'anthropic', // anthropic | openai | azure | google | mistral
     model: 'claude-sonnet-4-20250514',
-    maxIterations: 30,
+    maxIterations: 30, // max browser actions per test
   },
 
   browser: {
     headless: true,
     viewport: { width: 1280, height: 720 },
+    browserType: 'chromium', // chromium | firefox | webkit
+    storageState: './ai-ui-tests-auth.json', // Playwright auth state (optional)
   },
 
   screenshots: {
-    dir: './synth-screenshots',
+    dir: './ai-ui-tests-screenshots',
     onFailure: true,
     onSuccess: false,
   },
-};
+
+  memory: {
+    enabled: true, // learn from previous runs
+    dir: './ai-ui-tests-memory',
+  },
+}
+```
+
+All fields except `baseUrl` have sensible defaults — you can start with just:
+
+```typescript
+export default {
+  baseUrl: 'http://localhost:3000',
+}
 ```
 
 ## CLI
 
 ```
-synth run [path]              Run tests (default: ./tests/)
-synth init                    Scaffold config + example test
+ai-ui-tests run [path]              Run tests (default: ./tests/)
+ai-ui-tests init                    Scaffold config + example test
+ai-ui-tests auth                    Log in manually and save browser auth state
 ```
 
 ### Options
 
-| Flag | Description |
-|------|-------------|
-| `--headed` | Show the browser window |
-| `--base-url <url>` | Override base URL |
-| `--timeout <ms>` | Override timeout |
-| `--screenshot-dir <dir>` | Screenshot output directory |
-| `--grep <pattern>` | Filter tests by name |
-| `--model <id>` | Override AI model |
-| `--verbose` | Show AI reasoning and debug output |
-| `--debug` | Enable debug logging |
+| Flag                     | Description                          |
+| ------------------------ | ------------------------------------ |
+| `--headed`               | Show the browser window              |
+| `--base-url <url>`       | Override base URL                    |
+| `--timeout <ms>`         | Override timeout                     |
+| `--screenshot-dir <dir>` | Screenshot output directory          |
+| `--grep <pattern>`       | Filter tests by name                 |
+| `--model <id>`           | Override AI model                    |
+| `--no-memory`            | Disable selector memory for this run |
+| `--verbose`              | Show AI reasoning and step details   |
+| `--debug`                | Enable debug logging                 |
 
 ### Examples
 
 ```bash
 # Run all tests with browser visible
-synth run --headed
+npx ai-ui-tests run --headed
 
 # Run only login tests
-synth run --grep "log in"
+npx ai-ui-tests run --grep "log in"
 
 # Use OpenAI instead of Anthropic
-export OPENAI_API_KEY=sk-...
-synth run --model gpt-4o
+OPENAI_API_KEY=sk-... npx ai-ui-tests run --model gpt-4o
 
-# Verbose mode to see what the AI is doing
-synth run --verbose
+# Verbose mode to see AI reasoning
+npx ai-ui-tests run --verbose
+
+# Run without learning from previous runs
+npx ai-ui-tests run --no-memory
+```
+
+## Selector Memory
+
+AI UI Tests learns from previous test runs. After each test, the AI extracts which selectors worked and saves them to `ai-ui-tests-memory/`. On subsequent runs, these known-good selectors are injected into the AI's context so it prefers them — reducing retries and making tests faster and more reliable.
+
+Memory is:
+
+- **Advisory** — the AI can ignore stale entries if the page has changed
+- **Additive** — confidence grows with each successful reuse
+- **Fault-tolerant** — corrupted files silently reset, errors never break tests
+
+Disable with `--no-memory` or set `memory.enabled: false` in config. The `ai-ui-tests-memory/` directory can be committed to version control to share learnings across your team.
+
+## Authentication
+
+AI UI Tests supports all Playwright authentication mechanisms:
+
+### Option 1: Manual Login + Saved State
+
+```bash
+npx ai-ui-tests auth                    # Opens browser, saves to ai-ui-tests-auth.json
+npx ai-ui-tests auth -o my-auth.json    # Custom output path
+```
+
+Then reference it in your config:
+
+```typescript
+export default {
+  browser: {
+    storageState: './ai-ui-tests-auth.json',
+  },
+}
+```
+
+### Option 2: Auth Bypass for Testing
+
+Add a test mode to your app that skips real authentication (recommended for CI):
+
+```typescript
+browser: {
+  contextOptions: {
+    extraHTTPHeaders: { 'X-Test-Auth': 'true' },
+  },
+},
+```
+
+### Option 3: Playwright Context Options
+
+Pass any Playwright `BrowserContextOptions` through the config:
+
+```typescript
+browser: {
+  contextOptions: {
+    httpCredentials: { username: 'admin', password: 'secret' },
+    extraHTTPHeaders: { 'Authorization': 'Bearer token' },
+  },
+},
 ```
 
 ## How It Works
@@ -139,59 +225,53 @@ synth run --verbose
 ```
 ┌─────────┐       tool call         ┌─────────┐      Playwright       ┌─────────┐
 │         │  "click Sign Up btn"    │         │   page.click(...)     │         │
-│   AI    │ ──────────────────────→ │  Synth  │ ───────────────────→  │ Browser │
+│   AI    │ ──────────────────────→ │  AI UI Tests  │ ───────────────────→  │ Browser │
 │ (Brain) │                         │ (Coord) │                       │ (Hands) │
 │         │ ←────────────────────── │         │ ←───────────────────  │         │
 │         │  screenshot + aria tree │         │   new page state      │         │
 └─────────┘                         └─────────┘                       └─────────┘
 ```
 
-1. Synth loads app context from `synth.md` and `README.md`
-2. Reads a test: *"The user should be able to create a new account"*
+1. AI UI Tests loads app context from `ai-ui-tests.md` and remembered selectors from `ai-ui-tests-memory/`
+2. Reads a test: _"The user should be able to create a new account"_
 3. Captures browser state: screenshot + accessibility tree
 4. Sends context + test goal + page state to the AI
 5. AI responds with an action: `click("Sign Up")`, `type("Email", "user@test.com")`
-6. Synth executes the action via Playwright
+6. AI UI Tests executes the action via Playwright
 7. Captures new state, sends it back to the AI
 8. Repeats until the AI calls `done(pass/fail)`
+9. Extracts selector learnings and saves to memory for next run
 
-The AI never directly touches the browser. It sees screenshots and element trees, decides what to do, and Synth executes it.
+The AI never directly touches the browser. It sees screenshots and element trees, decides what to do, and AI UI Tests executes it.
 
-## AI Tools
+## AI Providers
 
-The AI has 25 tools available:
+AI UI Tests uses the [Vercel AI SDK](https://sdk.vercel.ai) for multi-provider support. Set the provider in your config and the corresponding API key:
 
-**Actions**: `navigate`, `click`, `type`, `press_key`, `scroll`, `hover`, `select_option`, `check`, `uncheck`, `go_back`, `go_forward`, `drag_and_drop`, `upload_file`
+| Provider            | Config                  | Environment Variable           |
+| ------------------- | ----------------------- | ------------------------------ |
+| Anthropic (default) | `provider: 'anthropic'` | `ANTHROPIC_API_KEY`            |
+| OpenAI              | `provider: 'openai'`    | `OPENAI_API_KEY`               |
+| Azure OpenAI        | `provider: 'azure'`     | `AZURE_API_KEY`                |
+| Google              | `provider: 'google'`    | `GOOGLE_GENERATIVE_AI_API_KEY` |
+| Mistral             | `provider: 'mistral'`   | `MISTRAL_API_KEY`              |
 
-**Dialogs**: `accept_dialog`, `dismiss_dialog`
-
-**Reading**: `get_text`, `get_url`
-
-**Assertions**: `assert_visible`, `assert_url`, `assert_text_contains`
-
-**Waiting**: `wait`, `wait_for_element`, `wait_for_network_idle`
-
-**Control**: `screenshot`, `done`
+Or override per-run: `npx ai-ui-tests run --model gpt-4o`
 
 ## CI Integration
 
-Synth exits with code 1 on any test failure, so it works with any CI system:
+AI UI Tests exits with code 1 on any test failure:
 
 ```yaml
 # GitHub Actions
+- name: Install Playwright browsers
+  run: npx playwright install --with-deps chromium
+
 - name: Run UI tests
-  run: npx synth run
+  run: npx ai-ui-tests run
   env:
     ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
-
-## Tech Stack
-
-- **TypeScript** — Full type safety
-- **Playwright** — Cross-browser automation
-- **Vercel AI SDK** — Unified API for Claude, OpenAI, and 20+ providers
-- **Commander.js** — CLI framework
-- **Zod** — Config validation
 
 ## License
 

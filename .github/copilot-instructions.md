@@ -1,4 +1,4 @@
-# Synth — AI-Driven UI Testing Tool
+# AI UI Tests — AI-Driven UI Testing Tool
 
 ## What This Is
 
@@ -6,7 +6,7 @@ CLI tool for AI-driven UI testing. Tests written in plain English markdown, exec
 
 ## Architecture
 
-Tests (.test.md) are parsed into suites/cases. For each test, an agent loop sends the test goal + page state (screenshot + ARIA tree) to an LLM via Vercel AI SDK. The AI responds with tool calls (click, type, navigate, assert, done) that Synth executes via Playwright. Loop repeats until the AI calls `done(pass/fail)`.
+Tests (.test.md) are parsed into suites/cases. For each test, an agent loop sends the test goal + page state (screenshot + ARIA tree) to an LLM via Vercel AI SDK. The AI responds with tool calls (click, type, navigate, assert, done) that AI UI Tests executes via Playwright. Loop repeats until the AI calls `done(pass/fail)`.
 
 ## Tech Stack
 
@@ -14,7 +14,7 @@ TypeScript (ESM), Playwright, Vercel AI SDK (`ai`), Commander.js, Zod, tsup, Vit
 
 ## Key Files
 
-- `src/agent/loop.ts` — Core agent loop (generateText + maxSteps)
+- `src/agent/loop.ts` — Core agent loop (generateText + stopWhen)
 - `src/ai/tools.ts` — 25 tool definitions with Zod schemas
 - `src/browser/actions.ts` — Action executor + multi-strategy selector resolver
 - `src/ai/prompt.ts` — System prompt with app context

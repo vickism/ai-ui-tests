@@ -1,18 +1,27 @@
-import { createProgram } from './cli/program.js';
+/**
+ * AI UI Tests CLI entry point.
+ *
+ * Sets up graceful shutdown handlers (Ctrl+C / SIGTERM) to ensure
+ * Playwright browsers are cleaned up, then delegates to Commander.js
+ * for command parsing (run, init, auth).
+ */
 
-// Graceful shutdown
-let isShuttingDown = false;
+import { createProgram } from './cli/program.js'
+
+// Graceful shutdown — first Ctrl+C exits cleanly, second forces immediate exit
+let isShuttingDown = false
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {
     if (isShuttingDown) {
-      process.exit(1);
+      process.exit(1)
     }
-    isShuttingDown = true;
-    console.log('\n  Shutting down...');
+    isShuttingDown = true
+    // eslint-disable-next-line no-console
+    console.log('\n  Shutting down...')
     // Playwright cleans up on process exit
-    process.exit(130);
-  });
+    process.exit(130)
+  })
 }
 
-const program = createProgram();
-program.parse();
+const program = createProgram()
+program.parse()
