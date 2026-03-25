@@ -12,7 +12,11 @@ export const configSchema = z.object({
       apiKey: z.string().optional(),
       maxIterations: z.number().int().min(1).max(100).default(30),
     })
-    .default({}),
+    .default(() => ({
+      provider: 'anthropic' as const,
+      model: 'claude-sonnet-4-20250514',
+      maxIterations: 30,
+    })),
 
   browser: z
     .object({
@@ -22,11 +26,18 @@ export const configSchema = z.object({
           width: z.number().int().default(1280),
           height: z.number().int().default(720),
         })
-        .default({}),
+        .default(() => ({ width: 1280, height: 720 })),
       timeout: z.number().int().default(30000),
       browserType: z.enum(['chromium', 'firefox', 'webkit']).default('chromium'),
+      storageState: z.string().optional(),
+      contextOptions: z.record(z.string(), z.unknown()).optional(),
     })
-    .default({}),
+    .default(() => ({
+      headless: true,
+      viewport: { width: 1280, height: 720 },
+      timeout: 30000,
+      browserType: 'chromium' as const,
+    })),
 
   screenshots: z
     .object({
@@ -34,7 +45,11 @@ export const configSchema = z.object({
       onFailure: z.boolean().default(true),
       onSuccess: z.boolean().default(false),
     })
-    .default({}),
+    .default(() => ({
+      dir: './synth-screenshots',
+      onFailure: true,
+      onSuccess: false,
+    })),
 
   reporter: z.enum(['console', 'html', 'json']).default('console'),
 });

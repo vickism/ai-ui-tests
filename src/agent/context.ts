@@ -1,10 +1,10 @@
-import type { CoreMessage } from 'ai';
+import type { ModelMessage } from 'ai';
 import type { PageState } from '../browser/page-state.js';
 
 export function buildInitialMessage(
   testGoal: string,
   pageState: PageState
-): CoreMessage {
+): ModelMessage {
   return {
     role: 'user',
     content: [
@@ -15,13 +15,13 @@ export function buildInitialMessage(
       {
         type: 'image',
         image: pageState.screenshot,
-        mimeType: 'image/png',
+        mediaType: 'image/png',
       },
     ],
   };
 }
 
-export function buildStateUpdateMessage(pageState: PageState): CoreMessage {
+export function buildStateUpdateMessage(pageState: PageState): ModelMessage {
   return {
     role: 'user',
     content: [
@@ -32,7 +32,7 @@ export function buildStateUpdateMessage(pageState: PageState): CoreMessage {
       {
         type: 'image',
         image: pageState.screenshot,
-        mimeType: 'image/png',
+        mediaType: 'image/png',
       },
     ],
   };

@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import pc from 'picocolors';
 import { runCommand } from './commands/run.js';
 import { initCommand } from './commands/init.js';
+import { authCommand } from './commands/auth.js';
 import { setLogLevel } from '../utils/logger.js';
 
 export function createProgram(): Command {
@@ -24,6 +25,7 @@ export function createProgram(): Command {
 
   program.addCommand(runCommand);
   program.addCommand(initCommand);
+  program.addCommand(authCommand);
 
   return program;
 }

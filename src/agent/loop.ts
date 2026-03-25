@@ -1,4 +1,4 @@
-import { generateText } from 'ai';
+import { generateText, stepCountIs, hasToolCall } from 'ai';
 import type { LanguageModel } from 'ai';
 import type { Page } from 'playwright';
 import { createTools, type ToolContext } from '../ai/tools.js';
@@ -52,11 +52,14 @@ export async function runAgentLoop(options: AgentOptions): Promise<AgentResult> 
       system: systemPrompt,
       messages: [initialMessage],
       tools,
-      maxSteps: config.ai.maxIterations,
+      stopWhen: [
+        stepCountIs(config.ai.maxIterations),
+        hasToolCall('done'),
+      ],
       onStepFinish: (step) => {
         if (step.toolCalls && step.toolCalls.length > 0) {
           for (const call of step.toolCalls) {
-            logger.debug(`  Step ${toolCtx.stepCount}: ${call.toolName}`, call.args);
+            logger.debug(`  Step ${toolCtx.stepCount}: ${call.toolName}`);
           }
         }
       },
@@ -66,10 +69,10 @@ export async function runAgentLoop(options: AgentOptions): Promise<AgentResult> 
     for (const step of result.steps) {
       for (const call of step.toolCalls) {
         if (call.toolName === 'done') {
-          const args = call.args as { pass: boolean; reason: string };
+          const input = call.input as { pass: boolean; reason: string };
           return {
-            pass: args.pass,
-            reason: args.reason,
+            pass: input.pass,
+            reason: input.reason,
             steps: toolCtx.stepCount,
             durationMs: Date.now() - startTime,
           };

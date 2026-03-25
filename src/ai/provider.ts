@@ -1,5 +1,5 @@
-import { anthropic } from '@ai-sdk/anthropic';
-import { openai } from '@ai-sdk/openai';
+import { anthropic, createAnthropic } from '@ai-sdk/anthropic';
+import { openai, createOpenAI } from '@ai-sdk/openai';
 import type { LanguageModel } from 'ai';
 import type { SynthConfig } from '../config/schema.js';
 import { AIError } from '../utils/errors.js';
@@ -10,18 +10,18 @@ export function createModel(config: SynthConfig): LanguageModel {
   switch (provider) {
     case 'anthropic': {
       if (apiKey) {
-        const { createAnthropic } = require('@ai-sdk/anthropic');
-        return createAnthropic({ apiKey })(model);
+        const custom = createAnthropic({ apiKey });
+        return custom(model) as LanguageModel;
       }
-      return anthropic(model);
+      return anthropic(model) as LanguageModel;
     }
 
     case 'openai': {
       if (apiKey) {
-        const { createOpenAI } = require('@ai-sdk/openai');
-        return createOpenAI({ apiKey })(model);
+        const custom = createOpenAI({ apiKey });
+        return custom(model) as LanguageModel;
       }
-      return openai(model);
+      return openai(model) as LanguageModel;
     }
 
     default:

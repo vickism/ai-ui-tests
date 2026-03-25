@@ -4,6 +4,7 @@ import {
   webkit,
   type Browser,
   type BrowserContext,
+  type BrowserContextOptions,
   type Page,
   type BrowserType,
 } from 'playwright';
@@ -50,9 +51,20 @@ export class BrowserManager {
       throw new BrowserError('Browser not launched. Call launch() first.');
     }
 
-    return this.browser.newContext({
+    // Build context options: Synth defaults + Playwright passthrough
+    const contextOptions: BrowserContextOptions = {
       viewport: this.config.browser.viewport,
-    });
+      // Spread any Playwright context options from config (httpCredentials, extraHTTPHeaders, etc.)
+      ...(this.config.browser.contextOptions as BrowserContextOptions | undefined),
+    };
+
+    // storageState is the primary Playwright auth mechanism
+    if (this.config.browser.storageState) {
+      contextOptions.storageState = this.config.browser.storageState;
+      logger.debug(`Using auth state from: ${this.config.browser.storageState}`);
+    }
+
+    return this.browser.newContext(contextOptions);
   }
 
   async newPage(): Promise<Page> {
