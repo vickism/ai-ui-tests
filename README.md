@@ -87,6 +87,10 @@ export default {
   browser: {
     headless: true,
     viewport: { width: 1280, height: 720 },
+    // Playwright auth state (see Authentication section below)
+    storageState: './synth-auth.json',
+    // Any additional Playwright context options
+    contextOptions: {},
   },
 
   screenshots: {
@@ -102,6 +106,7 @@ export default {
 ```
 synth run [path]              Run tests (default: ./tests/)
 synth init                    Scaffold config + example test
+synth auth                    Log in manually and save browser auth state
 ```
 
 ### Options
@@ -132,6 +137,55 @@ synth run --model gpt-4o
 
 # Verbose mode to see what the AI is doing
 synth run --verbose
+```
+
+## Authentication
+
+Synth supports all Playwright authentication mechanisms. The recommended approaches:
+
+### Option 1: Manual Login + Saved State
+
+Use `synth auth` to open a browser, log in manually, and save the auth state:
+
+```bash
+synth auth                          # Opens browser, saves to synth-auth.json
+synth auth -o my-auth.json          # Custom output path
+```
+
+Then reference it in your config:
+
+```typescript
+export default {
+  browser: {
+    storageState: './synth-auth.json',
+  },
+};
+```
+
+### Option 2: Auth Bypass for Testing
+
+Add a test mode to your app that skips real authentication (recommended for CI):
+
+```typescript
+// In your app: if AUTH_MODE=test, inject a mock user
+browser: {
+  contextOptions: {
+    extraHTTPHeaders: { 'X-Test-Auth': 'true' },
+  },
+},
+```
+
+### Option 3: Playwright Context Options
+
+Pass any Playwright `BrowserContextOptions` through the config:
+
+```typescript
+browser: {
+  contextOptions: {
+    httpCredentials: { username: 'admin', password: 'secret' },
+    extraHTTPHeaders: { 'Authorization': 'Bearer token' },
+  },
+},
 ```
 
 ## How It Works
@@ -179,19 +233,24 @@ Synth exits with code 1 on any test failure, so it works with any CI system:
 
 ```yaml
 # GitHub Actions
+- name: Install Playwright browsers
+  run: npx playwright install --with-deps chromium
+
 - name: Run UI tests
   run: npx synth run
   env:
     ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    AUTH_MODE: test   # If using auth bypass
 ```
 
 ## Tech Stack
 
 - **TypeScript** — Full type safety
 - **Playwright** — Cross-browser automation
-- **Vercel AI SDK** — Unified API for Claude, OpenAI, and 20+ providers
+- **Vercel AI SDK** (`ai` v6) — Unified API for Claude, OpenAI, and 20+ providers
 - **Commander.js** — CLI framework
-- **Zod** — Config validation
+- **Zod** — Config and tool schema validation
+- **Vitest** — 87 unit tests
 
 ## License
 

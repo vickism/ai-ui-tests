@@ -12,6 +12,8 @@
     "dev": "tsx src/index.ts",
     "audit": "npx better-npm-audit audit",
     "test": "vitest",
+    "test:ci": "vitest run",
+    "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit"
   },
   "keywords": [

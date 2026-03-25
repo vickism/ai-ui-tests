@@ -7,29 +7,34 @@ Synth is a CLI tool where UI tests are written in plain English (markdown) and a
 ## Tech Stack
 
 - TypeScript (ESM, ES2022, NodeNext modules)
-- Playwright (browser automation)
-- Vercel AI SDK (`ai` package) for multi-provider LLM support
-- Commander.js (CLI), Zod (validation), tsup (build), Vitest (tests)
+- Playwright ^1.58 (browser automation)
+- Vercel AI SDK (`ai` ^6.0, `@ai-sdk/anthropic` ^3.0, `@ai-sdk/openai` ^3.0) for multi-provider LLM support
+- Commander.js ^14 (CLI), Zod ^3.25 (validation), tsup (build), Vitest ^4.1 (tests)
 
 ## Architecture
 
 ```
 Tests (.test.md) → Parser → Agent Loop:
   Capture page state (screenshot + ARIA tree)
-  → Send to AI (generateText + tool_use)
+  → Send to AI (generateText + stopWhen)
   → AI returns action (click, type, navigate, assert, done)
   → Execute via Playwright
-  → Repeat until done(pass/fail)
+  → Repeat until done(pass/fail) or step limit reached
 ```
 
 ## Key Patterns
 
-- Tools defined with `tool()` from Vercel AI SDK using Zod schemas (`src/ai/tools.ts`)
-- Agent loop uses `generateText()` with `maxSteps` for multi-step tool calling (`src/agent/loop.ts`)
+- Tools defined with `tool()` from Vercel AI SDK using `inputSchema` (Zod schemas) — NOT `parameters` (`src/ai/tools.ts`)
+- Agent loop uses `generateText()` with `stopWhen: [stepCountIs(N), hasToolCall('done')]` — NOT `maxSteps` (`src/agent/loop.ts`)
+- Messages use `ModelMessage` type — NOT `CoreMessage`
+- Image parts use `mediaType` — NOT `mimeType`
+- Tool calls use `.input` — NOT `.args`
+- Zod object defaults use factory functions: `.default(() => ({...}))` — NOT `.default({})`
 - Multi-strategy selector resolution: CSS → text → role → label → placeholder → testId (`src/browser/actions.ts`)
 - The `done` tool has no execute function — checked in the agent loop's step results
 - Fresh browser page per test for isolation
 - Config validated with Zod, loaded from `synth.config.ts` with CLI overrides
+- Browser auth via Playwright `storageState` and `contextOptions` passthrough
 
 ## File Conventions
 
@@ -41,6 +46,7 @@ Tests (.test.md) → Parser → Agent Loop:
 ## Commands
 
 - `npm run dev -- run tests/` — run in dev mode
+- `npm run dev -- auth` — manual login, save auth state
 - `npm run build` — build with tsup
-- `npm test` — vitest
+- `npm test` — vitest (87 tests)
 - `npm run lint` — tsc --noEmit
