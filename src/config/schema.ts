@@ -11,6 +11,7 @@ export const configSchema = z.object({
       model: z.string().default('claude-sonnet-4-20250514'),
       apiKey: z.string().optional(),
       baseURL: z.string().optional(),
+      resourceName: z.string().optional(),
       maxIterations: z.number().int().min(1).max(100).default(30),
     })
     .default(() => ({

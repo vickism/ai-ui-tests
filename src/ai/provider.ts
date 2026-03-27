@@ -6,7 +6,7 @@ import type { SynthConfig } from '../config/schema.js';
 import { AIError } from '../utils/errors.js';
 
 export function createModel(config: SynthConfig): LanguageModel {
-  const { provider, model, apiKey, baseURL } = config.ai;
+  const { provider, model, apiKey, baseURL, resourceName } = config.ai;
 
   switch (provider) {
     case 'anthropic': {
@@ -26,15 +26,16 @@ export function createModel(config: SynthConfig): LanguageModel {
     }
 
     case 'azure': {
-      if (!baseURL) {
-        throw new AIError('Azure provider requires ai.baseURL (your Azure OpenAI endpoint)');
-      }
       if (!apiKey) {
         throw new AIError('Azure provider requires ai.apiKey');
       }
+      if (!resourceName && !baseURL) {
+        throw new AIError('Azure provider requires ai.resourceName or ai.baseURL');
+      }
       const azure = createAzure({
         apiKey,
-        baseURL,
+        ...(resourceName ? { resourceName } : {}),
+        ...(baseURL ? { baseURL } : {}),
       });
       return azure(model) as LanguageModel;
     }
