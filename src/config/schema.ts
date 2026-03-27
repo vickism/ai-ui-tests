@@ -6,10 +6,11 @@ export const configSchema = z.object({
   ai: z
     .object({
       provider: z
-        .enum(['anthropic', 'openai', 'google', 'mistral'])
+        .enum(['anthropic', 'openai', 'azure', 'google', 'mistral'])
         .default('anthropic'),
       model: z.string().default('claude-sonnet-4-20250514'),
       apiKey: z.string().optional(),
+      baseURL: z.string().optional(),
       maxIterations: z.number().int().min(1).max(100).default(30),
     })
     .default(() => ({
