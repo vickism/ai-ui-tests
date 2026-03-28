@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import pc from 'picocolors';
 import { loadConfig } from '../../config/loader.js';
 import { loadAppContext } from '../../config/context.js';
-import { discoverTestFiles, parseTestFiles } from '../../parser/index.js';
+import { discoverTestFiles, parseTestFilesWithAI } from '../../parser/index.js';
 import { createModel } from '../../ai/provider.js';
 import { createReporter } from '../../reporter/index.js';
 import { runSuites } from '../../runner/suite-runner.js';
@@ -39,7 +39,7 @@ export const runCommand = new Command('run')
       // Load app context
       const appContext = loadAppContext(process.cwd());
 
-      // Discover and parse test files
+      // Discover test files
       const testFiles = discoverTestFiles(testPath);
       if (testFiles.length === 0) {
         logger.error(`No test files found in ${testPath}`);
@@ -48,7 +48,14 @@ export const runCommand = new Command('run')
         process.exit(1);
       }
 
-      const suites = parseTestFiles(testFiles);
+      // Create AI model
+      const model = createModel(config);
+
+      const suites = await parseTestFilesWithAI(
+        testFiles,
+        model,
+        appContext.content
+      );
       const totalTests = suites.reduce((sum, s) => sum + s.tests.length, 0);
       logger.info(
         `Found ${totalTests} test${totalTests !== 1 ? 's' : ''} in ${testFiles.length} file${testFiles.length !== 1 ? 's' : ''}`
@@ -56,11 +63,10 @@ export const runCommand = new Command('run')
       logger.info(`Base URL: ${config.baseUrl}`);
       logger.info(`AI: ${config.ai.provider}/${config.ai.model}`);
 
-      // Create AI model
-      const model = createModel(config);
-
       // Create reporter
-      const reporter = createReporter(config.reporter);
+      const reporter = createReporter(config.reporter, {
+        verbose: options.verbose as boolean | undefined,
+      });
 
       // Run all suites
       const result = await runSuites({

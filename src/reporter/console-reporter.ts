@@ -1,7 +1,14 @@
 import pc from 'picocolors';
-import type { Reporter, TestResult, SuiteResult, RunResult } from './types.js';
+import type { Reporter, StepDetail, TestResult, SuiteResult, RunResult } from './types.js';
 
 export class ConsoleReporter implements Reporter {
+  private verbose: boolean;
+  private currentStepNum = 0;
+
+  constructor(options?: { verbose?: boolean }) {
+    this.verbose = options?.verbose ?? false;
+  }
+
   onSuiteStart(suiteName: string, sourceFile: string): void {
     console.log();
     console.log(
@@ -10,7 +17,52 @@ export class ConsoleReporter implements Reporter {
   }
 
   onTestStart(testName: string): void {
-    // Could show a spinner here in the future
+    this.currentStepNum = 0;
+    if (this.verbose) {
+      console.log();
+      console.log(`    ${pc.cyan(pc.bold(`Test: ${testName}`))}`);
+      console.log();
+    }
+  }
+
+  onStepUpdate(detail: StepDetail): void {
+    if (!this.verbose) return;
+
+    // Show AI reasoning (thinking)
+    if (detail.reasoning) {
+      const lines = detail.reasoning.split('\n');
+      for (const line of lines) {
+        if (line.trim()) {
+          console.log(`    ${pc.gray(pc.italic(line.trim()))}`);
+        }
+      }
+      console.log();
+    }
+
+    // Show action as a bold step
+    if (detail.action && detail.action !== 'done') {
+      this.currentStepNum++;
+      const argsStr = formatArgs(detail.actionArgs);
+      const header = `    ${pc.bold(`Step ${this.currentStepNum}: ${detail.action}`)}${argsStr ? ` ${pc.gray(argsStr)}` : ''}`;
+      console.log(header);
+
+      // Show result
+      if (detail.actionResult) {
+        const icon = detail.actionSuccess === false ? pc.red('✗') : pc.green('✓');
+        console.log(`      ${icon} ${detail.actionResult}`);
+      }
+      console.log();
+    }
+
+    // Show done verdict inline
+    if (detail.action === 'done') {
+      const args = detail.actionArgs as { pass?: boolean; reason?: string } | undefined;
+      if (args) {
+        const icon = args.pass ? pc.green('✓') : pc.red('✗');
+        console.log(`    ${icon} ${pc.bold('Verdict:')} ${args.reason ?? ''}`);
+        console.log();
+      }
+    }
   }
 
   onTestFinish(result: TestResult): void {
@@ -20,10 +72,16 @@ export class ConsoleReporter implements Reporter {
 
     const duration = pc.gray(`(${formatDuration(result.durationMs)}, ${result.steps} steps)`);
 
-    console.log(`    ${status} ${result.testName} ${duration}`);
-
-    if (!result.pass) {
-      console.log(`         ${pc.red(result.reason)}`);
+    if (this.verbose) {
+      // Separator line before result
+      console.log(`    ${status} ${result.testName} ${duration}`);
+      console.log();
+    } else {
+      // Compact mode: just pass/fail
+      console.log(`    ${status} ${result.testName} ${duration}`);
+      if (!result.pass) {
+        console.log(`         ${pc.red(result.reason)}`);
+      }
     }
   }
 
@@ -50,4 +108,16 @@ export class ConsoleReporter implements Reporter {
 function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(1)}s`;
+}
+
+function formatArgs(args?: Record<string, unknown>): string {
+  if (!args || Object.keys(args).length === 0) return '';
+  const parts: string[] = [];
+  for (const [key, val] of Object.entries(args)) {
+    if (val !== undefined && val !== null) {
+      const str = typeof val === 'string' ? `"${val}"` : String(val);
+      parts.push(`${key}=${str}`);
+    }
+  }
+  return parts.join(', ');
 }

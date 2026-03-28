@@ -7,12 +7,14 @@ import { buildInitialMessage } from './context.js';
 import { capturePageState, type PageState } from '../browser/page-state.js';
 import { logger } from '../utils/logger.js';
 import type { SynthConfig } from '../config/schema.js';
+import type { StepDetail } from '../reporter/types.js';
 
 export interface AgentResult {
   pass: boolean;
   reason: string;
   steps: number;
   durationMs: number;
+  stepDetails: StepDetail[];
 }
 
 export interface AgentOptions {
@@ -21,11 +23,13 @@ export interface AgentOptions {
   model: LanguageModel;
   config: SynthConfig;
   appContext: string;
+  onStepUpdate?: (detail: StepDetail) => void;
 }
 
 export async function runAgentLoop(options: AgentOptions): Promise<AgentResult> {
-  const { testGoal, page, model, config, appContext } = options;
+  const { testGoal, page, model, config, appContext, onStepUpdate } = options;
   const startTime = Date.now();
+  const stepDetails: StepDetail[] = [];
 
   // Capture initial page state
   let latestState: PageState = await capturePageState(page);
@@ -57,10 +61,40 @@ export async function runAgentLoop(options: AgentOptions): Promise<AgentResult> 
         hasToolCall('done'),
       ],
       onStepFinish: (step) => {
+        // Capture AI reasoning (text between tool calls)
+        const reasoning = (step.text || '').trim();
+
         if (step.toolCalls && step.toolCalls.length > 0) {
           for (const call of step.toolCalls) {
-            logger.debug(`  Step ${toolCtx.stepCount}: ${call.toolName}`);
+            const detail: StepDetail = {
+              stepNumber: toolCtx.stepCount,
+              reasoning: reasoning || undefined,
+              action: call.toolName,
+              actionArgs: call.input as Record<string, unknown>,
+            };
+
+            // Find matching tool result
+            if (step.toolResults) {
+              for (const tr of step.toolResults) {
+                if (tr.toolCallId === call.toolCallId) {
+                  const res = tr.output as { success?: boolean; message?: string } | undefined;
+                  detail.actionResult = res?.message;
+                  detail.actionSuccess = res?.success;
+                }
+              }
+            }
+
+            stepDetails.push(detail);
+            onStepUpdate?.(detail);
           }
+        } else if (reasoning) {
+          // Pure reasoning step with no tool call
+          const detail: StepDetail = {
+            stepNumber: toolCtx.stepCount,
+            reasoning,
+          };
+          stepDetails.push(detail);
+          onStepUpdate?.(detail);
         }
       },
     });
@@ -75,6 +109,7 @@ export async function runAgentLoop(options: AgentOptions): Promise<AgentResult> 
             reason: input.reason,
             steps: toolCtx.stepCount,
             durationMs: Date.now() - startTime,
+            stepDetails,
           };
         }
       }
@@ -86,6 +121,7 @@ export async function runAgentLoop(options: AgentOptions): Promise<AgentResult> 
       reason: `AI completed ${config.ai.maxIterations} steps without reaching a verdict`,
       steps: toolCtx.stepCount,
       durationMs: Date.now() - startTime,
+      stepDetails,
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -95,6 +131,7 @@ export async function runAgentLoop(options: AgentOptions): Promise<AgentResult> 
       reason: `Agent error: ${message}`,
       steps: toolCtx.stepCount,
       durationMs: Date.now() - startTime,
+      stepDetails,
     };
   }
 }

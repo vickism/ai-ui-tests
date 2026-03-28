@@ -45,34 +45,55 @@ export async function runSuites(options: SuiteRunnerOptions): Promise<RunResult>
         durationMs: 0,
       };
 
-      for (const testCase of tests) {
-        reporter.onTestStart(testCase.name);
+      const groups = suite.groups && suite.groups.length > 0
+        ? suite.groups
+        : tests.map((testCase, index) => ({
+          id: `window-${index + 1}`,
+          tests: [testCase],
+          reason: 'fallback-isolation',
+        }));
 
-        // Each test gets a fresh page
+      for (const group of groups) {
+        // Reuse a page for tests that share the same window
         const page = await browserManager.newPage();
 
         try {
-          const result = await runTest(testCase, page, model, config, appContext);
-          suiteResult.tests.push(result);
-          reporter.onTestFinish(result);
+          for (let index = 0; index < group.tests.length; index++) {
+            const testCase = group.tests[index];
+            reporter.onTestStart(testCase.name);
 
-          if (result.pass) {
-            totalPassed++;
-          } else {
-            totalFailed++;
+            try {
+              const result = await runTest(
+                testCase,
+                page,
+                model,
+                config,
+                appContext,
+                { startFromBaseUrl: index === 0, reporter }
+              );
+              suiteResult.tests.push(result);
+              reporter.onTestFinish(result);
+
+              if (result.pass) {
+                totalPassed++;
+              } else {
+                totalFailed++;
+              }
+            } catch (err) {
+              const errorResult = {
+                testName: testCase.name,
+                suiteName: testCase.suite,
+                pass: false,
+                reason: `Unexpected error: ${err instanceof Error ? err.message : String(err)}`,
+                steps: 0,
+                durationMs: Date.now() - suiteStart,
+                stepDetails: [],
+              };
+              suiteResult.tests.push(errorResult);
+              reporter.onTestFinish(errorResult);
+              totalFailed++;
+            }
           }
-        } catch (err) {
-          const errorResult = {
-            testName: testCase.name,
-            suiteName: testCase.suite,
-            pass: false,
-            reason: `Unexpected error: ${err instanceof Error ? err.message : String(err)}`,
-            steps: 0,
-            durationMs: Date.now() - suiteStart,
-          };
-          suiteResult.tests.push(errorResult);
-          reporter.onTestFinish(errorResult);
-          totalFailed++;
         } finally {
           await page.context().close();
         }

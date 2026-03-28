@@ -1,3 +1,12 @@
+export interface StepDetail {
+  stepNumber: number;
+  reasoning?: string;
+  action?: string;
+  actionArgs?: Record<string, unknown>;
+  actionResult?: string;
+  actionSuccess?: boolean;
+}
+
 export interface TestResult {
   testName: string;
   suiteName: string;
@@ -6,6 +15,7 @@ export interface TestResult {
   steps: number;
   durationMs: number;
   screenshotPath?: string;
+  stepDetails: StepDetail[];
 }
 
 export interface SuiteResult {
@@ -26,6 +36,7 @@ export interface RunResult {
 export interface Reporter {
   onSuiteStart(suiteName: string, sourceFile: string): void;
   onTestStart(testName: string): void;
+  onStepUpdate(detail: StepDetail): void;
   onTestFinish(result: TestResult): void;
   onSuiteFinish(result: SuiteResult): void;
   onRunFinish(result: RunResult): void;
