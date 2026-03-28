@@ -17,7 +17,7 @@ describe('buildSystemPrompt', () => {
 
   it('omits app context section when empty', () => {
     const prompt = buildSystemPrompt('');
-    expect(prompt).not.toContain('App Context');
+    expect(prompt).not.toContain('The following describes the application you are testing');
   });
 });
 

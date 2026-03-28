@@ -8,32 +8,76 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toContain('QA testing agent');
   });
 
-  it('includes rules for the agent', () => {
+  it('includes the phased approach', () => {
+    const prompt = buildSystemPrompt('');
+    expect(prompt).toContain('Phase 1');
+    expect(prompt).toContain('Phase 2');
+    expect(prompt).toContain('Phase 3');
+    expect(prompt).toContain('Phase 4');
+  });
+
+  it('includes action rules', () => {
     const prompt = buildSystemPrompt('');
     expect(prompt).toContain('ONE action at a time');
     expect(prompt).toContain('done');
   });
 
-  it('includes selector tips', () => {
+  it('includes element verification guidance', () => {
     const prompt = buildSystemPrompt('');
-    expect(prompt).toContain('Element Selection Tips');
+    expect(prompt).toContain('confirm the target element exists');
+    expect(prompt).toContain('Element Selection');
     expect(prompt).toContain('ARIA roles');
+  });
+
+  it('includes form data guidance', () => {
+    const prompt = buildSystemPrompt('');
+    expect(prompt).toContain('dummy data');
+    expect(prompt).toContain('QA');
+    expect(prompt).toContain('timestamp');
+  });
+
+  it('includes error recovery strategy', () => {
+    const prompt = buildSystemPrompt('');
+    expect(prompt).toContain('Error Recovery');
+    expect(prompt).toContain('Retry once');
+    expect(prompt).toContain('blocker');
+  });
+
+  it('includes assertion guidance', () => {
+    const prompt = buildSystemPrompt('');
+    expect(prompt).toContain('Assert the Result');
+    expect(prompt).toContain('assert_visible');
+    expect(prompt).toContain('evidence');
+  });
+
+  it('includes structured report guidance', () => {
+    const prompt = buildSystemPrompt('');
+    expect(prompt).toContain('PASS');
+    expect(prompt).toContain('FAIL');
+    expect(prompt).toContain('evidence');
+  });
+
+  it('includes thinking out loud instructions', () => {
+    const prompt = buildSystemPrompt('');
+    expect(prompt).toContain('Thinking Out Loud');
+    expect(prompt).toContain('reasoning');
   });
 
   it('includes app context when provided', () => {
     const prompt = buildSystemPrompt('My app has a /login page and a /dashboard.');
-    expect(prompt).toContain('App Context');
+    expect(prompt).toContain('The following describes the application');
     expect(prompt).toContain('/login');
     expect(prompt).toContain('/dashboard');
   });
 
   it('omits app context section when empty', () => {
     const prompt = buildSystemPrompt('');
-    expect(prompt).not.toContain('App Context');
+    expect(prompt).not.toContain('The following describes the application');
   });
 
-  it('instructs user-perspective testing', () => {
+  it('includes SPA navigation guidance', () => {
     const prompt = buildSystemPrompt('');
-    expect(prompt).toContain("USER's perspective");
+    expect(prompt).toContain('SPA navigation');
+    expect(prompt).toContain('prefer clicking nav links');
   });
 });
