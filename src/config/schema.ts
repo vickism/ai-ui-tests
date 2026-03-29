@@ -53,6 +53,16 @@ export const configSchema = z.object({
       onSuccess: false,
     })),
 
+  memory: z
+    .object({
+      enabled: z.boolean().default(true),
+      dir: z.string().default('./synth-memory'),
+    })
+    .default(() => ({
+      enabled: true,
+      dir: './synth-memory',
+    })),
+
   reporter: z.enum(['console', 'html', 'json']).default('console'),
 });
 

@@ -22,5 +22,10 @@ export const defaultConfig: SynthConfig = {
     onSuccess: false,
   },
 
+  memory: {
+    enabled: true,
+    dir: './synth-memory',
+  },
+
   reporter: 'console',
 };

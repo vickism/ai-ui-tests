@@ -80,4 +80,34 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toContain('SPA navigation');
     expect(prompt).toContain('prefer clicking nav links');
   });
+
+  it('includes remembered selectors when memory provided', () => {
+    const memory = [
+      {
+        elementDescription: 'login button',
+        selector: 'Sign In',
+        strategy: 'text' as const,
+        action: 'click',
+        pageUrl: '/login',
+        confidence: 0.9,
+        lastUsed: new Date().toISOString(),
+        useCount: 5,
+      },
+    ];
+    const prompt = buildSystemPrompt('', memory);
+    expect(prompt).toContain('Remembered Selectors');
+    expect(prompt).toContain('login button');
+    expect(prompt).toContain('Sign In');
+    expect(prompt).toContain('90%');
+  });
+
+  it('omits remembered selectors when memory is empty', () => {
+    const prompt = buildSystemPrompt('', []);
+    expect(prompt).not.toContain('Remembered Selectors');
+  });
+
+  it('omits remembered selectors when memory is undefined', () => {
+    const prompt = buildSystemPrompt('');
+    expect(prompt).not.toContain('Remembered Selectors');
+  });
 });

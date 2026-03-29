@@ -65,6 +65,12 @@ src/
     console-reporter.ts — Colored PASS/FAIL terminal output
     screenshot-reporter.ts — Saves failure PNGs to disk
     index.ts            — Reporter factory
+  memory/
+    types.ts            — SelectorEntry, SelectorMemoryFile, MemoryConfig types
+    store.ts            — Load, save, merge, prune memory files (filesystem I/O)
+    extractor.ts        — Post-test LLM call to extract selector learnings from step log
+    injector.ts         — Format memory entries into system prompt markdown section
+    index.ts            — Public API: loadMemoryForTest, saveMemoryAfterTest
   utils/
     logger.ts           — Leveled logging (debug/info/warn/error) with colors
     errors.ts           — Custom error classes (SynthError, ConfigError, ParseError, BrowserError, ActionError, AIError)
@@ -83,6 +89,7 @@ templates/
 - **`done` tool has no execute function** — the agent loop checks for it in step results to determine pass/fail.
 - **Fresh browser page per test** — isolation between tests.
 - **Playwright auth passthrough** — `storageState` and `contextOptions` in config are passed directly to Playwright's browser context.
+- **Selector memory** — After each test, AI extracts which selectors worked and saves to `synth-memory/` directory. On subsequent runs, remembered selectors are injected into the system prompt. Memory is advisory (AI can ignore stale entries), additive (confidence grows with reuse), and fault-tolerant (corrupted files silently reset). Disable with `--no-memory` flag or `memory.enabled: false` in config.
 
 ## Commands
 
@@ -102,7 +109,7 @@ npm run lint                    # Type-check with tsc --noEmit
 
 ## Testing
 
-87 unit tests across 12 test files covering:
+142 unit tests across 16 test files covering:
 - Markdown parser (headings, bullets, edge cases, file discovery, recursion)
 - Config schema validation (defaults, overrides, invalid input)
 - App context loader (synth.md, README.md loading, empty files, section headers)
@@ -113,3 +120,7 @@ npm run lint                    # Type-check with tsc --noEmit
 - AI provider factory (anthropic/openai model creation, invalid provider error)
 - System prompt (content, app context injection)
 - Browser actions (action executor with mocked pages, unknown actions, assertions)
+- Memory store (sanitize names, load/save/merge/prune, corruption handling, atomic writes)
+- Memory extractor (AI extraction with mocked generateText, graceful fallback on errors)
+- Memory injector (markdown table generation, confidence sorting, entry cap)
+- Memory integration (load combines suite+test, save writes both, merge on subsequent runs)

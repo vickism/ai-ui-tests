@@ -1,4 +1,7 @@
-export function buildSystemPrompt(appContext: string): string {
+import type { SelectorEntry } from '../memory/types.js';
+import { buildMemoryPromptSection } from '../memory/injector.js';
+
+export function buildSystemPrompt(appContext: string, selectorMemory?: SelectorEntry[]): string {
   const parts: string[] = [
     `You are Synth, a QA testing agent that drives a web browser to verify that a UI works correctly.
 
@@ -110,6 +113,13 @@ This narration is shown to the user in real-time so they can follow your progres
 The following describes the application you are testing. Use this to understand pages, URLs, terminology, and features:
 
 ${appContext}`);
+  }
+
+  if (selectorMemory && selectorMemory.length > 0) {
+    const memorySection = buildMemoryPromptSection(selectorMemory);
+    if (memorySection) {
+      parts.push(memorySection);
+    }
   }
 
   return parts.join('\n');

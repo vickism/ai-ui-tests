@@ -8,6 +8,7 @@ import { capturePageState, type PageState } from '../browser/page-state.js';
 import { logger } from '../utils/logger.js';
 import type { SynthConfig } from '../config/schema.js';
 import type { StepDetail } from '../reporter/types.js';
+import type { SelectorEntry } from '../memory/types.js';
 
 export interface AgentResult {
   pass: boolean;
@@ -23,6 +24,7 @@ export interface AgentOptions {
   model: LanguageModel;
   config: SynthConfig;
   appContext: string;
+  selectorMemory?: SelectorEntry[];
   onStepUpdate?: (detail: StepDetail) => void;
 }
 
@@ -45,7 +47,7 @@ export async function runAgentLoop(options: AgentOptions): Promise<AgentResult> 
   };
 
   const tools = createTools(toolCtx);
-  const systemPrompt = buildSystemPrompt(appContext);
+  const systemPrompt = buildSystemPrompt(appContext, options.selectorMemory);
   const initialMessage = buildInitialMessage(testGoal, latestState);
 
   logger.debug(`Starting agent loop for: "${testGoal}"`);

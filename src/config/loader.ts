@@ -18,6 +18,7 @@ export interface CLIOverrides {
   timeout?: number;
   screenshotDir?: string;
   model?: string;
+  noMemory?: boolean;
 }
 
 export async function loadConfig(
@@ -63,6 +64,10 @@ export async function loadConfig(
   if (overrides.model) {
     merged.ai = merged.ai ?? {};
     (merged.ai as Record<string, unknown>).model = overrides.model;
+  }
+  if (overrides.noMemory) {
+    merged.memory = merged.memory ?? {};
+    (merged.memory as Record<string, unknown>).enabled = false;
   }
 
   const result = configSchema.safeParse(merged);

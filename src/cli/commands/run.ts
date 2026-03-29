@@ -17,6 +17,7 @@ export const runCommand = new Command('run')
   .option('--screenshot-dir <dir>', 'directory for screenshots')
   .option('--grep <pattern>', 'filter tests by name pattern')
   .option('--model <id>', 'override AI model (e.g., openai:gpt-4o)')
+  .option('--no-memory', 'disable selector memory for this run')
   .option('--verbose', 'show AI reasoning and debug output')
   .action(async (testPath: string, options: Record<string, unknown>) => {
     if (options.verbose) {
@@ -34,6 +35,7 @@ export const runCommand = new Command('run')
         timeout: options.timeout as number | undefined,
         screenshotDir: options.screenshotDir as string | undefined,
         model: options.model as string | undefined,
+        noMemory: options.noMemory as boolean | undefined,
       });
 
       // Load app context
