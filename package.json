@@ -25,7 +25,17 @@
     "natural-language",
     "e2e"
   ],
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vickism/synth.git"
+  },
+  "homepage": "https://github.com/vickism/synth#readme",
   "license": "MIT",
+  "files": [
+    "dist",
+    "templates"
+  ],
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.64",
     "@ai-sdk/azure": "^3.0.49",
