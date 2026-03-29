@@ -95,7 +95,12 @@ export async function runSuites(options: SuiteRunnerOptions): Promise<RunResult>
             }
           }
         } finally {
-          await page.context().close();
+          if (browserManager.isPersistent) {
+            // Persistent context — just close the page, not the context
+            await page.close();
+          } else {
+            await page.context().close();
+          }
         }
       }
 

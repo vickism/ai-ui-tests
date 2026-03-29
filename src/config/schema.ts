@@ -32,6 +32,7 @@ export const configSchema = z.object({
       timeout: z.number().int().default(30000),
       browserType: z.enum(['chromium', 'firefox', 'webkit']).default('chromium'),
       channel: z.string().optional(),
+      userDataDir: z.string().optional(),
       storageState: z.string().optional(),
       contextOptions: z.record(z.string(), z.unknown()).optional(),
     })
