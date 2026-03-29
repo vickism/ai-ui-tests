@@ -31,6 +31,7 @@ export const configSchema = z.object({
         .default(() => ({ width: 1280, height: 720 })),
       timeout: z.number().int().default(30000),
       browserType: z.enum(['chromium', 'firefox', 'webkit']).default('chromium'),
+      channel: z.string().optional(),
       storageState: z.string().optional(),
       contextOptions: z.record(z.string(), z.unknown()).optional(),
     })

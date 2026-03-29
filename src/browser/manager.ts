@@ -37,6 +37,7 @@ export class BrowserManager {
     try {
       this.browser = await browserType.launch({
         headless: this.config.browser.headless,
+        channel: this.config.browser.channel,
       });
     } catch (err) {
       throw new BrowserError(
