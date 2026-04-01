@@ -1,3 +1,15 @@
+/**
+ * Captures the current state of a browser page for the AI to observe.
+ *
+ * Returns two representations:
+ *   - Screenshot: base64 PNG image — gives the AI visual context
+ *   - ARIA snapshot: structured accessibility tree — gives the AI machine-readable
+ *     element info (roles, names, labels) for precise selector targeting
+ *
+ * Both are captured in parallel after every tool execution and sent to
+ * the AI in the next message.
+ */
+
 import type { Page } from 'playwright';
 import { logger } from '../utils/logger.js';
 

@@ -1,3 +1,19 @@
+/**
+ * Core agent loop — the heart of Synth.
+ *
+ * For each test, this module:
+ *   1. Captures the initial page state (screenshot + ARIA tree)
+ *   2. Calls generateText() with the system prompt, tools, and page state
+ *   3. The AI decides an action (click, type, navigate, assert, done)
+ *   4. Synth executes the action via Playwright
+ *   5. Captures the new page state and feeds it back to the AI
+ *   6. Repeats until the AI calls `done(pass/fail)` or the step limit is reached
+ *
+ * Uses Vercel AI SDK's stopWhen with stepCountIs() and hasToolCall('done')
+ * to control loop termination. The onStepFinish callback captures AI reasoning
+ * and tool call details for verbose reporting.
+ */
+
 import { generateText, stepCountIs, hasToolCall } from 'ai';
 import type { LanguageModel } from 'ai';
 import type { Page } from 'playwright';

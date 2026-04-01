@@ -1,3 +1,21 @@
+/**
+ * Executes browser actions requested by the AI agent.
+ *
+ * Maps tool calls (click, type, navigate, assert, etc.) to Playwright API calls.
+ * Includes a multi-strategy selector resolver that tries six strategies in order
+ * to find the target element:
+ *
+ *   1. CSS selector  (e.g. "#login-btn", ".submit")
+ *   2. Text content  (e.g. "Sign In", "Submit") — most common from AI
+ *   3. ARIA role      (button, link, textbox, checkbox, radio, combobox, menuitem, tab)
+ *   4. Label          (e.g. form label associations)
+ *   5. Placeholder    (e.g. input placeholder text)
+ *   6. Test ID        (e.g. data-testid attribute)
+ *
+ * This resilience allows the AI to describe elements naturally without
+ * knowing the exact DOM structure.
+ */
+
 import type { Page, Locator } from 'playwright';
 import { ActionError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';

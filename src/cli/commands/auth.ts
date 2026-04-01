@@ -1,3 +1,15 @@
+/**
+ * The `synth auth` command — opens a browser for manual login.
+ *
+ * Two modes based on config:
+ *   - With userDataDir: launches a persistent Edge/Chrome profile. Login cookies
+ *     are saved directly into the profile directory for reuse across runs.
+ *   - Without userDataDir: launches a clean browser. On close, saves a
+ *     storageState JSON file that can be referenced in config.
+ *
+ * Respects browser.channel (Edge, Chrome, etc.) and browser.browserType from config.
+ */
+
 import { Command } from 'commander';
 import { chromium, firefox, webkit, type BrowserType } from 'playwright';
 import { loadConfig } from '../../config/loader.js';

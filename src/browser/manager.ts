@@ -1,3 +1,15 @@
+/**
+ * Manages the Playwright browser lifecycle.
+ *
+ * Supports two modes:
+ *   - Normal: launches a clean browser instance per run (browser.launch)
+ *   - Persistent: uses a real user profile directory (launchPersistentContext)
+ *     for reusing cookies, logins, and extensions across runs
+ *
+ * The persistent mode is triggered by setting browser.userDataDir in config.
+ * When persistent, callers must only close pages (not the context) between tests.
+ */
+
 import {
   chromium,
   firefox,

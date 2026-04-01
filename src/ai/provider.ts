@@ -1,3 +1,11 @@
+/**
+ * AI model factory — creates a LanguageModel instance from the user's config.
+ *
+ * Supports Anthropic, OpenAI, and Azure via the Vercel AI SDK. Each provider
+ * can be configured with custom API keys and base URLs. The returned model
+ * is used by the agent loop (generateText) and memory extractor.
+ */
+
 import { anthropic, createAnthropic } from '@ai-sdk/anthropic';
 import { openai, createOpenAI } from '@ai-sdk/openai';
 import { createAzure } from '@ai-sdk/azure';

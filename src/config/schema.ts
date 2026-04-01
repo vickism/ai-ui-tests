@@ -1,3 +1,17 @@
+/**
+ * Zod schema defining the shape and defaults of synth.config.ts.
+ *
+ * All fields except baseUrl have sensible defaults. The schema validates
+ * config loaded from the user's file, merged with defaults and CLI overrides.
+ *
+ * Sections:
+ *   - ai: provider, model, API key, max iterations
+ *   - browser: headless, viewport, channel (Edge/Chrome), userDataDir, storageState
+ *   - screenshots: output directory, capture on failure/success
+ *   - memory: enable/disable selector learning, storage directory
+ *   - reporter: output format (console/html/json)
+ */
+
 import { z } from 'zod';
 
 export const configSchema = z.object({

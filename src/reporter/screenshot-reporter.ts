@@ -1,3 +1,11 @@
+/**
+ * Saves failure screenshots to disk as PNG files.
+ *
+ * When a test fails and config.screenshots.onFailure is true, captures
+ * the final browser state and saves it to:
+ *   synth-screenshots/{sanitized-test-name}/failure.png
+ */
+
 import fs from 'node:fs';
 import path from 'node:path';
 import type { Page } from 'playwright';

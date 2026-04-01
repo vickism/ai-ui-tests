@@ -1,3 +1,15 @@
+/**
+ * Orchestrates a single test case execution.
+ *
+ * For each test:
+ *   1. Loads remembered selectors from the memory system (if enabled)
+ *   2. Navigates to the base URL
+ *   3. Runs the AI agent loop (observe → act → repeat → done)
+ *   4. Captures a failure screenshot (if enabled and test failed)
+ *   5. Saves new selector learnings to memory (if enabled)
+ *   6. Returns a TestResult with pass/fail, reason, timing, and step details
+ */
+
 import type { Page } from 'playwright';
 import type { LanguageModel } from 'ai';
 import type { SynthConfig } from '../config/schema.js';

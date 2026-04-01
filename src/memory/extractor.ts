@@ -1,3 +1,14 @@
+/**
+ * AI-powered selector extraction.
+ *
+ * After each test run, this module asks the AI to analyze the step log
+ * and extract which selectors were used successfully. The extracted data
+ * is structured as SelectorEntry objects and saved to disk for future runs.
+ *
+ * Cost: ~500 input + ~200 output tokens per test (~$0.001). Adds ~1-2s.
+ * Failure handling: returns [] on any error — never breaks test execution.
+ */
+
 import { generateText } from 'ai';
 import type { LanguageModel } from 'ai';
 import { logger } from '../utils/logger.js';

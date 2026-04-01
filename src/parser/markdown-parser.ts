@@ -1,3 +1,13 @@
+/**
+ * Parses .test.md files into structured TestSuite objects.
+ *
+ * Two parsing modes:
+ *   - Simple (parseMarkdownTests): headings → suites, bullets → tests. Fast, no AI.
+ *   - AI-powered (parseMarkdownTestsWithAI): asks the AI to analyze the test file
+ *     and suggest window grouping (which tests can share a browser page).
+ *     Falls back to simple parsing on any AI failure.
+ */
+
 import { generateText, type LanguageModel, type ModelMessage } from 'ai';
 import { z } from 'zod';
 import { ParseError } from '../utils/errors.js';

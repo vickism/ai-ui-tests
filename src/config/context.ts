@@ -1,3 +1,10 @@
+/**
+ * Loads app context files (synth.md and README.md) that describe the
+ * application under test. This content is injected into the AI's system
+ * prompt so it understands the app's pages, features, and terminology
+ * before running any tests.
+ */
+
 import fs from 'node:fs';
 import path from 'node:path';
 import { logger } from '../utils/logger.js';

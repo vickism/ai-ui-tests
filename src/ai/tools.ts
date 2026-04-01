@@ -1,3 +1,23 @@
+/**
+ * Defines the 25 tools available to the AI agent during test execution.
+ *
+ * Each tool wraps a Playwright browser action (click, type, navigate, etc.)
+ * using the Vercel AI SDK's tool() function with Zod input schemas. After
+ * every tool execution, the page state (screenshot + ARIA tree) is captured
+ * and sent back to the AI for the next decision.
+ *
+ * The special `done` tool has no execute function — the agent loop detects
+ * it in the step results to determine test pass/fail.
+ *
+ * Tool categories:
+ *   - Actions (13): navigate, click, type, press_key, scroll, hover, etc.
+ *   - Dialogs (2): accept_dialog, dismiss_dialog
+ *   - Reading (2): get_text, get_url
+ *   - Assertions (3): assert_visible, assert_url, assert_text_contains
+ *   - Waiting (3): wait, wait_for_element, wait_for_network_idle
+ *   - Control (2): screenshot, done
+ */
+
 import { z } from 'zod';
 import { tool } from 'ai';
 import type { Page } from 'playwright';

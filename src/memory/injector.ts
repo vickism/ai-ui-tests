@@ -1,5 +1,16 @@
+/**
+ * Formats remembered selectors into a markdown section for the AI system prompt.
+ *
+ * Produces a "## Remembered Selectors" table that tells the AI which selectors
+ * worked in previous runs. The AI is instructed to prefer these but can fall
+ * back to normal resolution if the page has changed.
+ *
+ * Caps output at 50 entries (~2000 tokens) to avoid bloating the prompt.
+ */
+
 import type { SelectorEntry } from './types.js';
 
+/** Maximum entries to include in the prompt section to control token usage. */
 const MAX_ENTRIES = 50;
 
 /**

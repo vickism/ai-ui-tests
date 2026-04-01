@@ -1,3 +1,11 @@
+/**
+ * Builds the message payloads sent to the AI at each step of the agent loop.
+ *
+ * Each message includes a text block (test goal + page URL/title + ARIA tree)
+ * and an image block (base64 PNG screenshot). The AI uses both to understand
+ * the current page state and decide its next action.
+ */
+
 import type { ModelMessage } from 'ai';
 import type { PageState } from '../browser/page-state.js';
 

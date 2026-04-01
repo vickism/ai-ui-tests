@@ -1,3 +1,12 @@
+/**
+ * The `synth init` command — scaffolds Synth files in the current project.
+ *
+ * Creates three files (skips any that already exist):
+ *   - synth.config.ts  — configuration with base URL, AI provider, browser settings
+ *   - tests/example.test.md — sample test file with plain English test cases
+ *   - synth.md — starter app context file for describing the application
+ */
+
 import { Command } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';

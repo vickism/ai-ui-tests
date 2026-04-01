@@ -1,3 +1,15 @@
+/**
+ * Public API for the selector memory system.
+ *
+ * Two main operations:
+ *   - loadMemoryForTest()  — called before a test to inject known-good selectors
+ *   - saveMemoryAfterTest() — called after a test to extract and persist new learnings
+ *
+ * Memory flows through the system as:
+ *   Load (suite + test files) → Merge → Inject into AI prompt → Test runs →
+ *   Extract learnings → Merge with existing → Prune → Save (suite + test files)
+ */
+
 import type { LanguageModel } from 'ai';
 import { logger } from '../utils/logger.js';
 import type { StepDetail } from '../reporter/types.js';

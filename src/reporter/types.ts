@@ -1,3 +1,13 @@
+/**
+ * Reporter types for test result tracking and output formatting.
+ *
+ * The Reporter interface defines callbacks for each lifecycle event:
+ *   onSuiteStart → onTestStart → onStepUpdate (per action) → onTestFinish → onSuiteFinish → onRunFinish
+ *
+ * Implementations: ConsoleReporter (colored terminal output with verbose/compact modes)
+ */
+
+/** Details of a single step (AI reasoning + tool call + result) within a test. */
 export interface StepDetail {
   stepNumber: number;
   reasoning?: string;

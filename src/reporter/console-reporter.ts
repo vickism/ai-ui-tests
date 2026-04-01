@@ -1,3 +1,14 @@
+/**
+ * Colored terminal reporter for test results.
+ *
+ * Two output modes:
+ *   - Compact (default): PASS/FAIL per test with timing. Failure reasons shown inline.
+ *   - Verbose (--verbose): AI reasoning in italic gray, step-by-step actions with
+ *     checkmarks/crosses, and the AI's final verdict before the PASS/FAIL line.
+ *
+ * Uses picocolors for terminal formatting (green=pass, red=fail, gray=metadata).
+ */
+
 import pc from 'picocolors';
 import type { Reporter, StepDetail, TestResult, SuiteResult, RunResult } from './types.js';
 

@@ -1,3 +1,17 @@
+/**
+ * Builds the system prompt that instructs the AI how to behave as a QA agent.
+ *
+ * The prompt uses a 4-phase approach modeled after the UI tester skill:
+ *   Phase 1 — Understand the test (parse goal → steps → assertion)
+ *   Phase 2 — Drive the browser (action rules, form filling, error recovery)
+ *   Phase 3 — Assert the result (specific evidence required)
+ *   Phase 4 — Report (structured pass/fail with reasoning)
+ *
+ * Optional sections appended at the end:
+ *   - App Context (from synth.md + README.md) — domain knowledge
+ *   - Remembered Selectors (from memory system) — known-good selectors from previous runs
+ */
+
 import type { SelectorEntry } from '../memory/types.js';
 import { buildMemoryPromptSection } from '../memory/injector.js';
 

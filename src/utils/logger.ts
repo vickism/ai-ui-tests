@@ -1,3 +1,11 @@
+/**
+ * Simple leveled logger with colored output.
+ *
+ * Levels: debug < info < warn < error
+ * Default level is 'info'. Set to 'debug' with --verbose or --debug flags.
+ * All output is indented with 2 spaces for clean terminal formatting.
+ */
+
 import pc from 'picocolors';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';

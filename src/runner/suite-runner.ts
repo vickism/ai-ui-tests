@@ -1,3 +1,14 @@
+/**
+ * Orchestrates running all test suites.
+ *
+ * Manages the full lifecycle: launch browser → iterate suites → group tests
+ * into browser windows → run each test → report results → close browser.
+ *
+ * Tests within the same window group share a browser page (for session
+ * continuity). Tests in different groups get isolated pages. In persistent
+ * browser mode, pages are closed but the context is preserved.
+ */
+
 import type { LanguageModel } from 'ai';
 import type { SynthConfig } from '../config/schema.js';
 import type { TestSuite } from '../parser/types.js';

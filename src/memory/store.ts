@@ -1,3 +1,17 @@
+/**
+ * Filesystem-backed memory store for selector data.
+ *
+ * Handles loading, saving, merging, and pruning of selector memory files.
+ * All operations are fault-tolerant — corrupted or missing files return
+ * empty data rather than throwing errors.
+ *
+ * Storage layout:
+ *   synth-memory/
+ *     {suite-name}/
+ *       _suite.json       — aggregated selectors across all tests in the suite
+ *       {test-name}.json  — selectors specific to one test
+ */
+
 import fs from 'node:fs';
 import path from 'node:path';
 import { logger } from '../utils/logger.js';

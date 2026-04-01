@@ -1,3 +1,13 @@
+/**
+ * Config loader — finds and parses the user's synth.config.ts file.
+ *
+ * Resolution order (first match wins):
+ *   synth.config.ts → synth.config.js → synth.config.mjs
+ *
+ * Merge priority: defaults < config file < CLI overrides < env variables
+ * Validation: Zod schema with detailed error messages on invalid config.
+ */
+
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import fs from 'node:fs';

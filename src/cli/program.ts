@@ -1,3 +1,12 @@
+/**
+ * Commander.js program definition with three subcommands:
+ *   - synth run [path]  — run tests from a file or directory
+ *   - synth init        — scaffold config + example test files
+ *   - synth auth        — open browser for manual login, save auth state
+ *
+ * Global --debug flag enables debug-level logging for all commands.
+ */
+
 import { Command } from 'commander';
 import pc from 'picocolors';
 import { runCommand } from './commands/run.js';

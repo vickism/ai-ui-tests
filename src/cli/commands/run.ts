@@ -1,3 +1,13 @@
+/**
+ * The main `synth run` command — orchestrates the full test pipeline:
+ *   1. Load config (synth.config.ts + CLI overrides)
+ *   2. Load app context (synth.md + README.md)
+ *   3. Discover and parse test files (.test.md)
+ *   4. Create AI model from config
+ *   5. Run all test suites via the suite runner
+ *   6. Report results and exit with code 0 (all pass) or 1 (any fail)
+ */
+
 import { Command } from 'commander';
 import pc from 'picocolors';
 import { loadConfig } from '../../config/loader.js';

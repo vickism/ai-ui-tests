@@ -1,3 +1,5 @@
+/** Reporter factory — creates the appropriate reporter based on config.reporter setting. */
+
 import type { Reporter } from './types.js';
 import { ConsoleReporter } from './console-reporter.js';
 
