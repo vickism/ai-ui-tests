@@ -1,6 +1,6 @@
 {
   "name": "@vickism/ai-ui-tests",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "AI-driven UI testing tool. Write tests in plain English, let AI drive the browser.",
   "type": "module",
   "main": "dist/index.js",
