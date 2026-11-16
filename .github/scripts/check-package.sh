@@ -9,7 +9,7 @@ node --input-type=module - "$archive_dir/manifest.json" <<'NODE'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 const [pkg] = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'))
-assert.equal(pkg.name, '@vicksim/ai-ui-tests')
+assert.equal(pkg.name, '@vickism/ai-ui-tests')
 const paths = pkg.files.map(({ path }) => path)
 for (const required of ['package.json', 'README.md', 'dist/index.js',
   'dist/templates/ai-ui-tests.config.ts', 'dist/templates/ai-ui-tests.md',
