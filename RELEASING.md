@@ -52,7 +52,7 @@ The workflow requests npm provenance, so use a public GitHub repository for rele
    npm publish --access public
    ```
 
-   Confirm the logged-in npm account is `vicksim`. This creates the package;
+   Confirm the logged-in npm account is `vickism`. This creates the package;
    workflow releases start with the next version. The normal prepublish script
    builds and tests before the initial manual publish.
 

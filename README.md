@@ -3,7 +3,7 @@
 AI-driven UI testing. Write tests in plain English, let AI drive the browser.
 
 ```bash
-npx @vicksim/ai-ui-tests run
+npx @vickism/ai-ui-tests run
 ```
 
 AI UI Tests reads your test descriptions, launches a real browser, and uses an AI agent to navigate your app like a real user — clicking buttons, filling forms, and verifying outcomes. No selectors, no code, just English.
@@ -11,7 +11,7 @@ AI UI Tests reads your test descriptions, launches a real browser, and uses an A
 ## Install
 
 ```bash
-npm install @vicksim/ai-ui-tests --save-dev
+npm install @vickism/ai-ui-tests --save-dev
 
 # Install browser binaries
 npx playwright install chromium
