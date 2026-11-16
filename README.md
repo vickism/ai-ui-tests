@@ -273,6 +273,10 @@ AI UI Tests exits with code 1 on any test failure:
     ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
+## Maintainer Releases
+
+For maintainer workflow setup and publishing instructions, see [Releasing](RELEASING.md).
+
 ## License
 
 MIT

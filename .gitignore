@@ -1,5 +1,6 @@
 node_modules/
 dist/
+coverage/
 ai-ui-tests-screenshots/
 ai-ui-tests-reports/
 ai-ui-tests-auth.json
