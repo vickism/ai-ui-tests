@@ -353,7 +353,10 @@ AI UI Tests exits with code 1 on any test failure:
 
 ## Maintainer Releases
 
-For maintainer workflow setup and publishing instructions, see [Releasing](RELEASING.md).
+Versions and changelogs are managed automatically by Release Please. Use Conventional Commit
+PR titles such as `fix: handle timeouts` or `feat: support a new browser` and squash-merge them.
+Merge the generated release PR when ready, then approve the npm deployment after checks pass.
+For setup, version policy, and retry instructions, see [Releasing](RELEASING.md).
 
 ## License
 

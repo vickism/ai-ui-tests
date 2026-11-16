@@ -13,6 +13,7 @@ import { runCommand } from './commands/run.js'
 import { initCommand } from './commands/init.js'
 import { authCommand } from './commands/auth.js'
 import { setLogLevel } from '../utils/logger.js'
+import { version } from '../version.js'
 
 export function createProgram(): Command {
   const program = new Command()
@@ -20,7 +21,7 @@ export function createProgram(): Command {
   program
     .name('ai-ui-tests')
     .description(`${pc.bold('AI UI Tests')} — AI-driven UI testing. Write tests in plain English, let AI drive the browser.`)
-    .version('0.1.0')
+    .version(version)
     .option('--debug', 'enable debug logging')
     .hook('preAction', (_thisCommand, actionCommand) => {
       const opts = actionCommand.optsWithGlobals()

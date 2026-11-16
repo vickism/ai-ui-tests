@@ -32,6 +32,7 @@ The AI never directly touches the browser. AI UI Tests is the coordinator betwee
 ```
 src/
   index.ts              — Entry point, graceful shutdown (SIGINT/SIGTERM)
+  version.ts            — Reads package.json for the source and bundled CLI version
   cli/
     program.ts          — Commander setup (run, init, auth commands)
     commands/run.ts     — Main run command (wires config → parser → browser → AI → reporter)
@@ -96,7 +97,27 @@ npm run build                   # Build with tsup → dist/index.js
 npm test                        # Run unit tests with vitest
 npm run lint                    # Lint with ESLint
 npm run check-types             # Type-check with tsc --noEmit
+npm run audit                   # Audit dependencies; failures block CI and releases
 ```
+
+## Releases and Pull Requests
+
+- Use Conventional Commit PR titles: `fix: ...` for fixes, `feat: ...` for features,
+  and `feat!: ...` (or another type with `!`) for breaking changes. Optional scopes
+  such as `fix(deps): ...` are supported. Squash-merge using the PR title.
+- Release Please calculates versions and maintains a release PR with package.json,
+  package-lock.json, and CHANGELOG.md. Merge that PR when ready to release; it
+  creates a GitHub tag/release and starts preparation for npm publication.
+- Below 1.0, fixes bump patch, features and breaking changes bump minor. At 1.0+,
+  breaking changes bump major. Do not manually bump routine release versions or
+  edit the release manifest; Release Please maintains them.
+- CLI `--version` comes from package.json through src/version.ts. Keep the packed
+  version check in .github/scripts/check-package.sh when changing the build.
+- Keep audit, lint, formatting, types, tests, and package checks as release gates.
+  The final job publishes the checked archive only after the configured `npm`
+  environment approval. Preserve npm OIDC and the job-level permissions split.
+- See [RELEASING.md](RELEASING.md) for the GitHub App configuration, environment
+  protection, npm Trusted Publisher setup, baseline, and failed-publication retries.
 
 ## Environment Variables
 

@@ -31,6 +31,8 @@ ln -s "$GITHUB_WORKSPACE/node_modules" "$smoke_dir/package/node_modules"
 mkdir "$smoke_dir/project"
 cd "$smoke_dir/project"
 node "$smoke_dir/package/dist/index.js" --help
+expected_version="$(node -p 'JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).version' "$smoke_dir/package/package.json")"
+test "$(node "$smoke_dir/package/dist/index.js" --version)" = "$expected_version"
 node "$smoke_dir/package/dist/index.js" init
 test -s ai-ui-tests.config.ts
 test -s ai-ui-tests.md
