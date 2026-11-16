@@ -10,6 +10,8 @@ AI UI Tests reads your test descriptions, launches a real browser, and uses an A
 
 ## Install
 
+Requires Node.js `^20.19.0`, `^22.13.0`, or `>=24.0.0`.
+
 ```bash
 npm install @vickism/ai-ui-tests --save-dev
 
@@ -22,19 +24,32 @@ npx playwright install chromium
 ```bash
 # Scaffold config + example test
 npx ai-ui-tests init
+```
 
-# Set your API key
+The command creates three files (and skips files that already exist). Before running tests:
+
+- Set `baseUrl` in `ai-ui-tests.config.ts` to your app's URL.
+- Describe your app in `ai-ui-tests.md`.
+- Replace the sample cases in `tests/example.test.md` with tests for your app.
+
+Set your API key for the default Anthropic provider:
+
+```bash
+# macOS / Linux
 export ANTHROPIC_API_KEY=sk-ant-...
+```
 
+```powershell
+# PowerShell
+$env:ANTHROPIC_API_KEY = 'sk-ant-...'
+```
+
+For other providers, see [AI Providers](#ai-providers).
+
+```bash
 # Start your app, then run tests
 npx ai-ui-tests run
 ```
-
-That's it. AI UI Tests creates three files:
-
-- `ai-ui-tests.config.ts` — points to your app's URL
-- `ai-ui-tests.md` — describes your app so the AI understands it
-- `tests/example.test.md` — a sample test to get started
 
 ## Writing Tests
 
@@ -53,11 +68,11 @@ Tests are markdown files. Headings are suites, bullet points are tests:
 - The user can update their display name
 ```
 
-Save as `tests/auth.test.md` and run `npx ai-ui-tests run`. Each bullet is a standalone test that the AI will execute step by step.
+Save as `tests/auth.test.md` and run `npx ai-ui-tests run`. Each bullet describes a test that the AI executes step by step. The AI planner can group related tests to share a browser page: the first test in each group starts at `baseUrl`, and subsequent tests continue from the previous page state. If grouping fails, each test gets its own page. With `browser.userDataDir`, all pages share a persistent browser context.
 
 ## App Context
 
-Create a `ai-ui-tests.md` file in your project root to describe your app. This is what makes plain English tests work — the AI reads it before every test:
+Create an `ai-ui-tests.md` file in your project root to describe your app. AI UI Tests loads this file and your project's `README.md` at the start of a run and sends their contents to the configured AI provider as context for planning and executing tests:
 
 ```markdown
 # My App
@@ -88,16 +103,16 @@ export default {
   baseUrl: 'http://localhost:3000',
 
   ai: {
-    provider: 'anthropic', // anthropic | openai | azure | google | mistral
+    provider: 'anthropic', // anthropic | openai | azure
     model: 'claude-sonnet-4-20250514',
-    maxIterations: 30, // max browser actions per test
+    maxIterations: 30, // max AI steps per test
   },
 
   browser: {
     headless: true,
     viewport: { width: 1280, height: 720 },
     browserType: 'chromium', // chromium | firefox | webkit
-    storageState: './ai-ui-tests-auth.json', // Playwright auth state (optional)
+    // storageState: './ai-ui-tests-auth.json', // Enable after saving auth state
   },
 
   screenshots: {
@@ -113,7 +128,7 @@ export default {
 }
 ```
 
-All fields except `baseUrl` have sensible defaults — you can start with just:
+The default URL is `http://localhost:3000`. All settings have defaults, so you can start by setting your app's URL:
 
 ```typescript
 export default {
@@ -131,17 +146,18 @@ ai-ui-tests auth                    Log in manually and save browser auth state
 
 ### Options
 
-| Flag                     | Description                          |
-| ------------------------ | ------------------------------------ |
-| `--headed`               | Show the browser window              |
-| `--base-url <url>`       | Override base URL                    |
-| `--timeout <ms>`         | Override timeout                     |
-| `--screenshot-dir <dir>` | Screenshot output directory          |
-| `--grep <pattern>`       | Filter tests by name                 |
-| `--model <id>`           | Override AI model                    |
-| `--no-memory`            | Disable selector memory for this run |
-| `--verbose`              | Show AI reasoning and step details   |
-| `--debug`                | Enable debug logging                 |
+| Flag                     | Description                                             |
+| ------------------------ | ------------------------------------------------------- |
+| `--headed`               | Show the browser window                                 |
+| `--base-url <url>`       | Override base URL                                       |
+| `--timeout <ms>`         | Override timeout                                        |
+| `--screenshot-dir <dir>` | Screenshot output directory                             |
+| `--grep <pattern>`       | Filter suite or test names (case-insensitive substring) |
+| `--file <pattern>`       | Filter filenames (case-insensitive substring)           |
+| `--model <id>`           | Override AI model                                       |
+| `--no-memory`            | Disable selector memory for this run                    |
+| `--verbose`              | Show AI reasoning and step details                      |
+| `--debug`                | Enable debug logging                                    |
 
 ### Examples
 
@@ -152,8 +168,11 @@ npx ai-ui-tests run --headed
 # Run only login tests
 npx ai-ui-tests run --grep "log in"
 
-# Use OpenAI instead of Anthropic
-OPENAI_API_KEY=sk-... npx ai-ui-tests run --model gpt-4o
+# Run files whose names contain "auth"
+npx ai-ui-tests run --file auth
+
+# Override the model after configuring ai.provider as 'openai'
+npx ai-ui-tests run --model gpt-4o
 
 # Verbose mode to see AI reasoning
 npx ai-ui-tests run --verbose
@@ -176,7 +195,7 @@ Disable with `--no-memory` or set `memory.enabled: false` in config. The `ai-ui-
 
 ## Authentication
 
-AI UI Tests supports all Playwright authentication mechanisms:
+AI UI Tests supports saved browser state and authentication options passed through to Playwright:
 
 ### Option 1: Manual Login + Saved State
 
@@ -184,6 +203,8 @@ AI UI Tests supports all Playwright authentication mechanisms:
 npx ai-ui-tests auth                    # Opens browser, saves to ai-ui-tests-auth.json
 npx ai-ui-tests auth -o my-auth.json    # Custom output path
 ```
+
+Log in, then close only the tab so the browser context remains available while the command saves its state. Closing the whole browser can prevent saving.
 
 Then reference it in your config:
 
@@ -223,16 +244,11 @@ browser: {
 ## How It Works
 
 ```
-┌─────────┐       tool call         ┌─────────┐      Playwright       ┌─────────┐
-│         │  "click Sign Up btn"    │         │   page.click(...)     │         │
-│   AI    │ ──────────────────────→ │  AI UI Tests  │ ───────────────────→  │ Browser │
-│ (Brain) │                         │ (Coord) │                       │ (Hands) │
-│         │ ←────────────────────── │         │ ←───────────────────  │         │
-│         │  screenshot + aria tree │         │   new page state      │         │
-└─────────┘                         └─────────┘                       └─────────┘
+AI ── tool calls ──> AI UI Tests ── Playwright actions ──> Browser
+AI <── page state ── AI UI Tests <── screenshots + tree ── Browser
 ```
 
-1. AI UI Tests loads app context from `ai-ui-tests.md` and remembered selectors from `ai-ui-tests-memory/`
+1. AI UI Tests loads app context from `ai-ui-tests.md` and `README.md`, plus remembered selectors from `ai-ui-tests-memory/`
 2. Reads a test: _"The user should be able to create a new account"_
 3. Captures browser state: screenshot + accessibility tree
 4. Sends context + test goal + page state to the AI
@@ -246,17 +262,79 @@ The AI never directly touches the browser. It sees screenshots and element trees
 
 ## AI Providers
 
-AI UI Tests uses the [Vercel AI SDK](https://sdk.vercel.ai) for multi-provider support. Set the provider in your config and the corresponding API key:
+AI UI Tests implements Anthropic, OpenAI, and Azure OpenAI through the Vercel AI SDK. Google and Mistral are accepted by the config schema but are not implemented by the model factory.
 
-| Provider            | Config                  | Environment Variable           |
-| ------------------- | ----------------------- | ------------------------------ |
-| Anthropic (default) | `provider: 'anthropic'` | `ANTHROPIC_API_KEY`            |
-| OpenAI              | `provider: 'openai'`    | `OPENAI_API_KEY`               |
-| Azure OpenAI        | `provider: 'azure'`     | `AZURE_API_KEY`                |
-| Google              | `provider: 'google'`    | `GOOGLE_GENERATIVE_AI_API_KEY` |
-| Mistral             | `provider: 'mistral'`   | `MISTRAL_API_KEY`              |
+Set `ai.provider` and `ai.model` in `ai-ui-tests.config.ts`. Choose a model that supports images and tool calls. Changing the provider does not change the model automatically. The default pair is `anthropic` / `claude-sonnet-4-20250514`.
 
-Or override per-run: `npx ai-ui-tests run --model gpt-4o`
+| Provider            | `ai.provider` | API key configuration                                        |
+| ------------------- | ------------- | ------------------------------------------------------------ |
+| Anthropic (default) | `'anthropic'` | `ANTHROPIC_API_KEY` environment variable, or `ai.apiKey`     |
+| OpenAI              | `'openai'`    | `OPENAI_API_KEY` environment variable, or `ai.apiKey`        |
+| Azure OpenAI        | `'azure'`     | Explicit `ai.apiKey`, plus `ai.resourceName` or `ai.baseURL` |
+
+### Anthropic
+
+Set `ANTHROPIC_API_KEY` as shown in [Quick Start](#quick-start), then configure:
+
+```typescript
+export default {
+  baseUrl: 'http://localhost:3000',
+  ai: {
+    provider: 'anthropic',
+    model: 'claude-sonnet-4-20250514',
+  },
+}
+```
+
+### OpenAI
+
+```bash
+export OPENAI_API_KEY=sk-...
+```
+
+```powershell
+$env:OPENAI_API_KEY = 'sk-...'
+```
+
+```typescript
+export default {
+  baseUrl: 'http://localhost:3000',
+  ai: {
+    provider: 'openai',
+    model: 'gpt-4o',
+  },
+}
+```
+
+### Azure OpenAI
+
+The Azure provider requires the key to be passed explicitly in config. Read it from an environment variable:
+
+```bash
+export AZURE_API_KEY=your-key
+```
+
+```powershell
+$env:AZURE_API_KEY = 'your-key'
+```
+
+```typescript
+export default {
+  baseUrl: 'http://localhost:3000',
+  ai: {
+    provider: 'azure',
+    model: 'your-deployment-name',
+    apiKey: process.env.AZURE_API_KEY,
+    resourceName: 'your-resource-name',
+  },
+}
+```
+
+Use your Azure deployment name for `model`. You can set `ai.baseURL` instead of `ai.resourceName` for a custom Azure endpoint.
+
+For Anthropic and OpenAI, an explicit `ai.apiKey` takes precedence over the provider's environment variable. For example, use `apiKey: process.env.MY_AI_API_KEY` to read a custom variable. OpenAI also supports `ai.baseURL` when `ai.apiKey` is supplied. Keep actual keys out of committed configuration files. `.env` files are not loaded automatically; export variables in the shell that runs the command or load them through your runtime.
+
+After configuring the provider and key, run `npx ai-ui-tests run`. To override only the model for that provider, use `npx ai-ui-tests run --model <model-id>`. There is no CLI provider switch.
 
 ## CI Integration
 
