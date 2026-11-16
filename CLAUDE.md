@@ -116,7 +116,11 @@ npm run audit                   # Audit dependencies; failures block CI and rele
 - Keep audit, lint, formatting, types, tests, and package checks as release gates.
   The final job publishes the checked archive only after the configured `npm`
   environment approval. Preserve npm OIDC and the job-level permissions split.
-- See [RELEASING.md](RELEASING.md) for the GitHub App configuration, environment
+- Release Please uses the built-in GITHUB_TOKEN. Only its metadata job receives
+  contents, PR, and issue write permissions. Bot PR checks can require approval
+  in GitHub; if absent, close and reopen the PR as a maintainer to trigger them.
+  Keep the required checks and npm approval gate enforced.
+- See [RELEASING.md](RELEASING.md) for repository token settings, environment
   protection, npm Trusted Publisher setup, baseline, and failed-publication retries.
 
 ## Environment Variables

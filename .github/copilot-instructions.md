@@ -41,5 +41,8 @@ TypeScript (ESM), Playwright, Vercel AI SDK (`ai`), Commander.js, Zod, tsup, Vit
   breaking changes bump major. Keep routine version bumps and the release manifest
   under Release Please control. Read CLI version from package.json, never hardcode it.
 - Preserve audit, lint, type checks, tests, packed CLI checks, OIDC, and the
-  separation of release bot credentials from repository-code execution.
+  separation of the release job's GITHUB_TOKEN write permissions from repository-code execution.
+- Release Please uses GITHUB_TOKEN, with no App credentials. Maintainers approve
+  pending bot-PR workflows or close/reopen the PR to trigger missing checks;
+  preserve required checks and the npm approval gate.
 - Follow [RELEASING.md](../RELEASING.md) for setup, version policy, and retries.
