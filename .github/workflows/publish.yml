@@ -27,39 +27,23 @@ jobs:
       (github.actor == 'vickism' && github.triggering_actor == 'vickism'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
     outputs:
       created: ${{ steps.release.outputs.release_created || steps.retry.outputs.release_created }}
       version: ${{ steps.release.outputs.version || steps.retry.outputs.version }}
       sha: ${{ steps.release.outputs.sha || steps.retry.outputs.sha }}
       tag: ${{ steps.release.outputs.tag_name || steps.retry.outputs.tag_name }}
     steps:
-      # App credentials never enter a job that checks out repository code.
-      - name: Check release bot configuration
-        if: inputs.retry_tag == ''
-        env:
-          APP_ID: ${{ vars.RELEASE_APP_ID }}
-          APP_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
-        run: |
-          test -n "$APP_ID" || { echo 'Configure RELEASE_APP_ID; see RELEASING.md'; exit 1; }
-          test -n "$APP_KEY" || { echo 'Configure RELEASE_APP_PRIVATE_KEY; see RELEASING.md'; exit 1; }
-      - name: Create repository-scoped release bot token
-        if: inputs.retry_tag == ''
-        id: bot
-        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
-        with:
-          app-id: ${{ vars.RELEASE_APP_ID }}
-          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: ${{ github.event.repository.name }}
-          permission-contents: write
-          permission-pull-requests: write
-          permission-issues: write
+      # Write permissions stay in this metadata-only job; no repository checkout.
       - name: Maintain release PR and GitHub release
         if: inputs.retry_tag == ''
         id: release
         uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4
         with:
-          token: ${{ steps.bot.outputs.token }}
+          token: ${{ github.token }}
           target-branch: main
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
